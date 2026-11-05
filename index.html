@@ -1,0 +1,34 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="theme-color" content="#f6f7f5" />
+  <meta name="description" content="A calm, private space to build daily habits and make meaningful progress." />
+  <link rel="manifest" href="/manifest.json" />
+  <link rel="icon" href="/icons/icon.svg" type="image/svg+xml" />
+  <link rel="stylesheet" href="/styles.css" />
+  <title>Daily Habits — Small actions, meaningful growth</title>
+</head>
+<body>
+  <div class="app-shell">
+    <aside class="sidebar" aria-label="Main navigation">
+      <a class="brand" href="#dashboard" aria-label="Daily Habits home"><span class="brand-mark">d</span><span>daily<span class="brand-light">habits</span></span></a>
+      <div class="workspace-label">WORKSPACE</div>
+      <nav id="side-nav" class="nav-list"></nav>
+      <div class="sidebar-bottom">
+        <div class="sync-indicator"><span class="status-dot"></span><span id="sync-label">Saved on this device</span></div>
+        <button class="profile-button" data-page="settings"><span class="avatar">D</span><span class="profile-copy"><strong>My space</strong><small>Personal workspace</small></span><span class="more">···</span></button>
+      </div>
+    </aside>
+    <main class="main-area">
+      <header class="topbar"><div class="mobile-brand"><span class="brand-mark">d</span> dailyhabits</div><div class="breadcrumb"><span>My workspace</span><span class="crumb-sep">/</span><strong id="page-label">Overview</strong></div><div class="top-actions"><button id="theme-toggle" class="icon-button" aria-label="Toggle color theme" title="Toggle theme">◐</button><button class="avatar avatar-small" data-page="settings" aria-label="Open settings">D</button></div></header>
+      <div id="view" class="page-content" tabindex="-1"></div>
+      <nav id="bottom-nav" class="bottom-nav" aria-label="Mobile navigation"></nav>
+    </main>
+  </div>
+  <dialog id="modal" class="modal"><form method="dialog" id="modal-form"><div class="modal-head"><div><div class="eyebrow" id="modal-eyebrow">NEW</div><h2 id="modal-title">Add item</h2></div><button class="icon-button" value="cancel" aria-label="Close">×</button></div><div id="modal-body"></div><div class="modal-actions"><button class="button button-quiet" value="cancel">Cancel</button><button id="modal-submit" class="button button-primary" value="default">Save</button></div></form></dialog>
+  <div id="toast" class="toast" role="status" aria-live="polite"></div>
+  <script type="module" src="/src/app.js"></script>
+</body>
+</html>
