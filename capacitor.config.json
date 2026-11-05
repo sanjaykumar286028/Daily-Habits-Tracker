@@ -1,0 +1,8 @@
+{
+  "appId": "com.sanjaykumar286028.dailyhabitstracker",
+  "appName": "Daily Habits Tracker",
+  "webDir": "dist",
+  "server": {
+    "androidScheme": "https"
+  }
+}

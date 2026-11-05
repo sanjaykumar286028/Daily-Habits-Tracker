@@ -1,49 +1,68 @@
 # Daily Habits Tracker
 
-A quiet, responsive habit tracker built for local-first personal use. Create habits and goals, track a daily check-in, review history, write private reflections, use a focus timer, and export or restore your data.
+A responsive, installable local-first habit tracker. Habits, completion history, goals, milestones, journal entries, and focus sessions are stored in IndexedDB on the user's device. The app works without an account or network after its shell has been loaded once.
 
-## Run locally
+## Run and verify
 
-Requirements: Node.js 20 or newer. The application has no runtime packages.
-
-```sh
-npm run build
-```
-
-Serve the generated `dist/` directory with any static web server. For local development, use any static server pointed at the repository root. Service workers and notifications work on `localhost` or HTTPS.
-
-## Features
-
-- Nine destinations: Dashboard, My Habits, Calendar, Goals, Analytics, Focus, Journal, Achievements, and Settings.
-- Boolean, count, and duration habit models; daily, weekday, weekend, and selected-day schedules; archive and edit.
-- Daily completion records, schedule-aware summary calculations, calendar, recent activity heatmap, and streak summaries.
-- Goal tracking with linked habits, target dates, and progress views.
-- Private local journal with mood and energy check-in.
-- Focus timer, earned milestone conditions, and rule-based daily insight.
-- Light and dark themes; responsive desktop sidebar and mobile navigation.
-- IndexedDB persistence with a localStorage recovery copy; guest use requires no account.
-- Installable PWA shell and offline static assets.
-- JSON backup export and validated, confirmed merge import.
-
-## Storage, sync, and privacy
-
-The app stores personal records in the browser on the current device. Journal content is not sent to a service. Browser storage can be cleared by the user or browser, so export backups regularly. This version does **not** include Supabase authentication, remote database synchronization, offline change queues, cross-device sync, or account deletion. The settings page labels cloud sync as not configured. `.env.example` documents the intended public configuration names but no code reads them.
-
-Notifications require browser permission. Browsers do not guarantee delivery at a chosen time, and this version does not implement a background reminder scheduler.
-
-## Build, tests, and deployment
+Requirements: Node.js 22 or newer. The browser app has no runtime JavaScript dependencies; Capacitor packages are pinned in `package.json` for Android builds.
 
 ```sh
 npm run build
 npm test
+npm run dev
 ```
 
-The build outputs static files to `dist/`. For Cloudflare Pages, use build command `npm run build` and output directory `dist`. No secrets or environment variables are required for local functionality. A custom domain/production URL is not configured by this repository.
+Open `http://127.0.0.1:4173`. Service workers, notifications, and PWA install prompts require localhost or HTTPS. `npm run build` creates/updates `dist/`; `BASE_PATH` can be set for subpath hosting.
+
+## Included features
+
+- Dashboard, habit manager, monthly calendar, goals and milestones, analytics and rolling weekly report, focus timer, private journal search, achievements, and settings.
+- Boolean, count, and duration habits; daily, weekday, weekend, and chosen-weekday schedules; pause by archiving; daily completion, progress logging, and optional skip reasons.
+- Schedule-aware completion percentages and streaks that ignore unscheduled dates and future dates.
+- IndexedDB local persistence with a localStorage recovery copy, stable IDs, one log per habit/day, and offline app-shell caching.
+- Light/dark themes, mobile bottom navigation, a desktop sidebar, and reduced-motion support.
+- Journal search, CSV completion export, validated JSON backup, and confirmed merge import.
+- Rule-based insights and achievement conditions based on saved activity.
+- PWA install prompt when the browser provides one, manual installation instructions otherwise, and a user-controlled service-worker update prompt.
+- Optional browser reminders at a habit's preferred time while the app is open and notification permission is granted.
+
+## PWA installation and updates
+
+The manifest uses **Daily Habits Tracker** / **Habits** and the app-shell service worker caches only static assets. Private records remain in IndexedDB and are not added to the Cache API. Updates wait for the user to choose **Update now**. Background reminder delivery is not guaranteed when a browser or installed app is closed.
+
+## Android
+
+Capacitor configuration is in `capacitor.config.json` with app ID `com.sanjaykumar286028.dailyhabitstracker`. The Android workflow generates the native project and creates a debug APK plus an unsigned release candidate. A signed release artifact is produced only when protected keystore secrets are configured. No APK download link is published until a signed artifact is released and verified. See [Android build and release](docs/android-release.md).
+
+The local environment used for this implementation has Node.js but no npm, Java, Gradle, or Android SDK, so no APK was built or device-tested here.
+
+## Deployments and CI
+
+- GitHub Actions runs unit tests, syntax checks, and a production build.
+- The GitHub Pages workflow deploys from `main` to `https://sanjaykumar286028.github.io/Daily-Habits-Tracker/` after GitHub Pages is enabled with **GitHub Actions** in repository settings.
+- The Cloudflare Pages workflow runs tests and builds. Deployment requires the `CLOUDFLARE_ACCOUNT_ID` and `CLOUDFLARE_PAGES_PROJECT` repository variables and `CLOUDFLARE_API_TOKEN` secret.
+- The Android workflow can produce APK artifacts in GitHub Actions. Signed release builds require the protected keystore secrets described in [Android build and release](docs/android-release.md).
+
+See [deployment instructions](docs/deployment.md). A workflow file or successful build does not mean a site has been deployed; verify the action run and live URL.
+
+## Cloud data and security status
+
+This version does not implement Supabase authentication or remote synchronization. The SQL migration in `supabase/migrations/` defines owner-scoped tables and row-level policies as a starting point; it has not been applied or tested against a Supabase project. Guest data stays local. No service-role key is used. Journal content is local-only.
+
+The export includes the data needed by this local version. Restore validates the version and record shapes, asks before merge, and upserts records. Browser storage can be cleared by the user or browser; keep regular backups.
 
 ## Data format
 
-The local IndexedDB database is `daily-habits-v1`, with a versioned state record. Exported JSON contains `schemaVersion: 1`, habits, logs, goals, journal entries, focus sessions, settings, and export time. Import validates version and collection types, asks for confirmation, then merges by stable record ID. A future database migration should preserve IDs and historical completion records.
+The local IndexedDB database is `daily-habits-v1` and stores a `schemaVersion: 1` state object. Logs are unique per habit and local date. Updates to a habit's description or schedule do not rewrite old log records.
 
-## Quality checks
+## Future updates
 
-The pure scheduling, completion-summary, and backup-validation functions have Node tests. Full browser automation, accessibility audit, cloud authorization tests, and multi-device synchronization tests are not included. Run `npm test` and `npm run build` before publishing.
+1. Install Node.js 22+, npm, Java 21, and Android Studio with an Android SDK.
+2. Pull the `main` branch and run `npm install`, `npm test`, and `npm run build`.
+3. For Android, use `npm run android:add` once, then `npm run android:sync`. Keep the generated Android project and release keystore backed up.
+4. Configure GitHub Pages, Cloudflare Pages, and Android signing secrets before expecting their workflows to publish/deploy.
+5. Verify new site URLs and APK artifacts before sharing them.
+
+## Current verification limits
+
+The five automated Node tests cover scheduling, completion summaries, count/duration targets, schedule-aware streaks, and backup validation. Browser automation, PWA installation across browsers, Supabase authorization/sync tests, Android device/lifecycle testing, signed APK generation, and live deployment verification remain outstanding.

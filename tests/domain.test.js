@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { isScheduled, completionSummary, validateBackup } from '../src/domain.js';
+import { isScheduled, completionSummary, validateBackup, habitStreak } from '../src/domain.js';
 
 test('scheduling respects weekdays, selected days, and start dates', () => {
   const weekdays = { startDate: '2026-11-02', frequency: 'weekdays' };
@@ -22,4 +22,30 @@ test('backup validation checks version and collection shapes', () => {
   assert.equal(validateBackup({ schemaVersion: 1, habits: [], logs: [] }), true);
   assert.equal(validateBackup({ schemaVersion: 2, habits: [], logs: [] }), false);
   assert.equal(validateBackup({ schemaVersion: 1, habits: {}, logs: [] }), false);
+});
+
+test('count and duration habits only complete at their target; skipped is not complete', () => {
+  const habits = [
+    { id: 'pages', type: 'count', target: 10, startDate: '2026-01-01' },
+    { id: 'walk', type: 'duration', target: 20, startDate: '2026-01-01' },
+    { id: 'rest', type: 'boolean', startDate: '2026-01-01' },
+  ];
+  const logs = [
+    { habitId: 'pages', date: '2026-11-05', status: 'done', value: 7 },
+    { habitId: 'walk', date: '2026-11-05', status: 'done', value: 20 },
+    { habitId: 'rest', date: '2026-11-05', status: 'skip' },
+  ];
+  assert.deepEqual(completionSummary(habits, logs, '2026-11-05'), {
+    eligible: habits, done: 1, remaining: 2, percentage: 33,
+  });
+});
+
+test('streaks skip unscheduled weekdays and do not include future dates', () => {
+  const habit = { id: 'weekly', startDate: '2026-10-26', frequency: 'weekly', days: [1], type: 'boolean' };
+  const logs = [
+    { habitId: 'weekly', date: '2026-10-26', status: 'done' },
+    { habitId: 'weekly', date: '2026-11-02', status: 'done' },
+    { habitId: 'weekly', date: '2026-11-09', status: 'done' },
+  ];
+  assert.deepEqual(habitStreak(habit, logs, '2026-11-05'), { current: 2, longest: 2 });
 });

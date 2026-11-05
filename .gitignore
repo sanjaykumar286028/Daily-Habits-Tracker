@@ -3,5 +3,10 @@ dist/
 .env.*
 !.env.example
 node_modules/
+android/local.properties
+android/.gradle/
+android/app/build/
+*.jks
+*.keystore
 playwright-report/
 test-results/

@@ -5,9 +5,9 @@
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <meta name="theme-color" content="#f6f7f5" />
   <meta name="description" content="A calm, private space to build daily habits and make meaningful progress." />
-  <link rel="manifest" href="/manifest.json" />
-  <link rel="icon" href="/icons/icon.svg" type="image/svg+xml" />
-  <link rel="stylesheet" href="/styles.css" />
+  <link rel="manifest" href="./manifest.json" />
+  <link rel="icon" href="./icons/icon.svg" type="image/svg+xml" />
+  <link rel="stylesheet" href="./styles.css" />
   <title>Daily Habits — Small actions, meaningful growth</title>
 </head>
 <body>
@@ -27,8 +27,9 @@
       <nav id="bottom-nav" class="bottom-nav" aria-label="Mobile navigation"></nav>
     </main>
   </div>
-  <dialog id="modal" class="modal"><form method="dialog" id="modal-form"><div class="modal-head"><div><div class="eyebrow" id="modal-eyebrow">NEW</div><h2 id="modal-title">Add item</h2></div><button class="icon-button" value="cancel" aria-label="Close">×</button></div><div id="modal-body"></div><div class="modal-actions"><button class="button button-quiet" value="cancel">Cancel</button><button id="modal-submit" class="button button-primary" value="default">Save</button></div></form></dialog>
+  <dialog id="modal" class="modal"><form method="dialog" id="modal-form"><div class="modal-head"><div><div class="eyebrow" id="modal-eyebrow">NEW</div><h2 id="modal-title">Add item</h2></div><button class="icon-button" value="cancel" formnovalidate aria-label="Close">×</button></div><div id="modal-body"></div><div class="modal-actions"><button class="button button-quiet" value="cancel" formnovalidate>Cancel</button><button id="modal-submit" class="button button-primary" value="default">Save</button></div></form></dialog>
+  <div id="update-banner" class="update-banner" hidden><span>A Daily Habits update is ready.</span><button class="button button-primary button-sm" id="update-now">Update now</button></div>
   <div id="toast" class="toast" role="status" aria-live="polite"></div>
-  <script type="module" src="/src/app.js"></script>
+      <script type="module" src="./src/app.js"></script>
 </body>
 </html>
