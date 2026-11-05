@@ -17,9 +17,9 @@ Open `http://127.0.0.1:4173`. Service workers, notifications, and PWA install pr
 ## Included features
 
 - Dashboard, habit manager, monthly calendar, goals and milestones, analytics and rolling weekly report, focus timer, private journal search, achievements, and settings.
-- Boolean, count, and duration habits; daily, weekday, weekend, and chosen-weekday schedules; pause by archiving; daily completion, progress logging, and optional skip reasons.
+- Boolean, count, and duration habits; daily, weekday, weekend, and chosen-weekday schedules; optional start/end dates; archive, restore, delete, completion, progress, and skip actions.
 - Schedule-aware completion percentages and streaks that ignore unscheduled dates and future dates.
-- IndexedDB local persistence with a localStorage recovery copy, stable IDs, one log per habit/day, and offline app-shell caching.
+- IndexedDB local persistence with a localStorage recovery copy, stable IDs, one log per habit/day, offline change queue, and static-shell caching.
 - Light/dark themes, mobile bottom navigation, a desktop sidebar, and reduced-motion support.
 - Journal search, CSV completion export, validated JSON backup, and confirmed merge import.
 - Rule-based insights and achievement conditions based on saved activity.
@@ -47,9 +47,11 @@ See [deployment instructions](docs/deployment.md). A workflow file or successful
 
 ## Cloud data and security status
 
-This version does not implement Supabase authentication or remote synchronization. The SQL migration in `supabase/migrations/` defines owner-scoped tables and row-level policies as a starting point; it has not been applied or tested against a Supabase project. Guest data stays local. No service-role key is used. Journal content is local-only.
+Supabase authentication and sync are implemented as an optional feature, disabled until both `SUPABASE_URL` and `SUPABASE_ANON_KEY` are configured at build time. Guest mode continues to work without an account. Signing in sends saved app data, including journal entries, to the configured project after an in-app disclosure. Never use a service-role key in the frontend. Apply the owner-scoped RLS migrations before enabling sync. See [Supabase setup](docs/supabase.md).
 
-The export includes the data needed by this local version. Restore validates the version and record shapes, asks before merge, and upserts records. Browser storage can be cleared by the user or browser; keep regular backups.
+Local writes are retained in IndexedDB and a localStorage recovery copy. The app reports fallback and write failure states. Offline changes stay on-device and are retried when online; conflicts are resolved per record by update time. Sign-out preserves local records. Deleting local data signs out and leaves the cloud copy untouched.
+
+JSON backup import validates record identifiers, dates, collection shapes, and duplicate keys before asking for confirmation. Exported data may include private journal content; store backup files securely.
 
 ## Data format
 
@@ -65,4 +67,5 @@ The local IndexedDB database is `daily-habits-v1` and stores a `schemaVersion: 1
 
 ## Current verification limits
 
-The five automated Node tests cover scheduling, completion summaries, count/duration targets, schedule-aware streaks, and backup validation. Browser automation, PWA installation across browsers, Supabase authorization/sync tests, Android device/lifecycle testing, signed APK generation, and live deployment verification remain outstanding.
+The five automated Node tests cover scheduling, completion summaries, count/duration targets, schedule-aware streaks, and backup validation. Browser automation, PWA installation across browsers, Live Supabase RLS authorization tests, browser/device lifecycle testing, signed APK generation, and live deployment verification remain outstanding.
+
