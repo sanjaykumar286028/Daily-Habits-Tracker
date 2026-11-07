@@ -2,7 +2,7 @@
 
 ## GitHub Pages
 
-`.github/workflows/github-pages.yml` builds the project with the repository subpath as `BASE_PATH`, runs the unit tests, and deploys `dist/` from `main`. In repository Settings → Pages, select **GitHub Actions** as the publishing source if it is not already enabled. The expected project URL is `https://sanjaykumar286028.github.io/Daily-Habits-Tracker/`; it is not considered live until the workflow completes and the URL is checked.
+`.github/workflows/github-pages.yml` builds the project with the repository subpath as `BASE_PATH`, runs the unit tests, and deploys `dist/` from `main`. GitHub Pages is enabled with **GitHub Actions** as the publishing source. The live site is `https://sanjaykumar286028.github.io/Daily-Habits-Tracker/`; the latest verified deployment is [workflow run 42029497130](https://github.com/sanjaykumar286028/Daily-Habits-Tracker/actions/runs/42029497130). The homepage and primary navigation were checked in a browser. The isolated browser used for QA did not expose IndexedDB or localStorage, so data persistence could not be verified there.
 
 Optional Supabase browser settings use repository variables `SUPABASE_URL` and `SUPABASE_ANON_KEY`. They are embedded in the public app bundle. Never set a `SUPABASE_SERVICE_ROLE_KEY` as a build variable.
 
@@ -16,7 +16,7 @@ Use a Cloudflare Pages project connected to this GitHub repository or retain the
 
 The service worker caches only the static application shell, not journal records, IndexedDB, or arbitrary same-origin GET responses. Navigations use the network when available and fall back to the cached application shell. A waiting service worker update is shown to the user; the app reloads only after the user selects **Update now**. Install prompts are browser-controlled. Browsers without a prompt show platform-specific manual instructions.
 
-## Required owner actions
+## Remaining owner configuration
 
-GitHub Pages must be enabled in repository settings. Cloudflare needs an account, Pages project, account ID, and API token. Neither account configuration is available in the local build environment, so deployment URLs must be verified from the respective dashboards after configuration.
+GitHub Pages is already enabled and deployed. To enable Cloudflare deploys, configure a Pages project, `CLOUDFLARE_ACCOUNT_ID`, `CLOUDFLARE_PAGES_PROJECT`, and the protected `CLOUDFLARE_API_TOKEN` secret. The latest Cloudflare run built the app successfully but skipped its deploy step because these values are not set. Configure `SUPABASE_URL` and `SUPABASE_ANON_KEY` only if cloud sync is desired.
 
