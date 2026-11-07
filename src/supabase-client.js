@@ -62,7 +62,7 @@ export class SupabaseClient {
     const requestHeaders = { apikey: this.anonKey, ...headers };
     if (token) requestHeaders.Authorization = `Bearer ${token}`;
     if (body !== undefined) requestHeaders['Content-Type'] = 'application/json';
-    const response = await this.fetchImpl(`${this.url}${path}`, {
+    const response = await this.fetchImpl.call(globalThis, `${this.url}${path}`, {
       method,
       headers: requestHeaders,
       body: body === undefined ? undefined : JSON.stringify(body),
@@ -198,3 +198,4 @@ export class SupabaseClient {
     }
   }
 }
+
