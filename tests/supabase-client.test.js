@@ -47,6 +47,19 @@ test('password sign-in stores a user session and applies anon and bearer headers
   assert.equal(calls[0].options.credentials, 'omit');
 });
 
+test('fetch adapter is called with the browser global receiver', async () => {
+  let receiver;
+  const client = new SupabaseClient({
+    url:'https://habits.supabase.co', anonKey:`sb_publishable_${'x'.repeat(32)}`, storage:memoryStorage(),
+    fetchImpl:function () {
+      receiver = this;
+      return Promise.resolve(jsonResponse({ id:'user-1' }));
+    },
+  });
+  await client.rawRequest('/auth/v1/user');
+  assert.equal(receiver, globalThis);
+});
+
 test('expired sessions refresh before restoring the signed-in user', async () => {
   const storage = memoryStorage();
   const calls = [];
@@ -65,3 +78,4 @@ test('expired sessions refresh before restoring the signed-in user', async () =>
   assert.equal(calls.length, 2);
   assert.match(calls[1].options.headers.Authorization, /fresh-token/);
 });
+
