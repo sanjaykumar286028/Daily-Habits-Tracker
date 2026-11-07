@@ -9,6 +9,10 @@ const supabaseAnonKey = process.env.SUPABASE_ANON_KEY || '';
 if (Boolean(supabaseUrl) !== Boolean(supabaseAnonKey)) throw new Error('Set both SUPABASE_URL and SUPABASE_ANON_KEY, or leave both unset.');
 if (supabaseUrl && !validateSupabaseConfig(supabaseUrl, supabaseAnonKey)) throw new Error('Supabase configuration must use an HTTPS project URL and a publishable/anon key.');
 await writeFile('dist/src/public-config.js', `export const supabaseUrl = ${JSON.stringify(supabaseUrl)};\nexport const supabaseAnonKey = ${JSON.stringify(supabaseAnonKey)};\n`);
+const buildVersion = (process.env.BUILD_VERSION || process.env.GITHUB_SHA || 'local').replace(/[^a-zA-Z0-9_-]/g, '').slice(0, 64);
+const serviceWorkerPath = 'dist/sw.js';
+const serviceWorker = await readFile(serviceWorkerPath, 'utf8');
+await writeFile(serviceWorkerPath, serviceWorker.replace(/const CACHE_NAME = 'daily-habits-shell-[^']+';/, `const CACHE_NAME = 'daily-habits-shell-${buildVersion}';`));
 const capacitorCorePath = 'node_modules/@capacitor/core/dist/index.js';
 const localNotificationsPath = 'node_modules/@capacitor/local-notifications/dist/esm';
 try {
@@ -53,3 +57,4 @@ if (basePath !== './') {
   await writeFile(manifestPath, `${JSON.stringify(manifest, null, 2)}\n`);
 }
 console.log('Static site built in dist/');
+
