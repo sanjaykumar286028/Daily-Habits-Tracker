@@ -10,7 +10,7 @@
     "build": "node scripts/build.mjs",
     "dev": "node scripts/serve.mjs",
     "test": "node --test",
-    "check": "node --check src/app.js && node --check src/domain.js && node --test",
+    "check": "node --check src/app.js && node --check src/domain.js && node --check src/native-reminders.js && node --check src/reminder-utils.js && node --test",
     "android:add": "cap add android",
     "android:sync": "cap sync android",
     "android:debug": "cap sync android && cd android && gradlew.bat assembleDebug",

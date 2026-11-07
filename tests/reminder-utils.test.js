@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { buildUpcomingReminders, isQuietTime, reminderId } from '../src/reminder-utils.js';
+import { buildUpcomingReminders, isQuietTime, moveReminderOutOfQuietHours, reminderId } from '../src/reminder-utils.js';
 
 const habit = overrides => ({ id:'habit-1', name:'Read', startDate:'2026-11-01', frequency:'daily', time:'09:30', ...overrides });
 
@@ -10,6 +10,13 @@ test('quiet hours handle daytime and overnight windows', () => {
   assert.equal(isQuietTime('07:59', '22:00', '08:00'), true);
   assert.equal(isQuietTime('08:00', '22:00', '08:00'), false);
   assert.equal(isQuietTime('12:00', '12:00', '12:00'), false);
+});
+
+test('snoozed reminders move past an active overnight quiet window', () => {
+  const settings = { quietHoursEnabled:true, quietHoursStart:'22:00', quietHoursEnd:'08:00' };
+  assert.equal(moveReminderOutOfQuietHours(new Date(2026, 10, 7, 23, 5), settings).getTime(), new Date(2026, 10, 8, 8, 0).getTime());
+  assert.equal(moveReminderOutOfQuietHours(new Date(2026, 10, 8, 7, 50), settings).getTime(), new Date(2026, 10, 8, 8, 0).getTime());
+  assert.equal(moveReminderOutOfQuietHours(new Date(2026, 10, 8, 9, 0), settings).getTime(), new Date(2026, 10, 8, 9, 0).getTime());
 });
 
 test('upcoming reminders respect schedule, completion, quiet hours, and past times', () => {

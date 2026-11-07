@@ -14,6 +14,17 @@ export function isQuietTime(time, start, end) {
   return start < end ? time >= start && time < end : time >= start || time < end;
 }
 
+export function moveReminderOutOfQuietHours(date, settings) {
+  const adjusted = new Date(date);
+  if (!settings?.quietHoursEnabled) return adjusted;
+  const clock = `${String(adjusted.getHours()).padStart(2, '0')}:${String(adjusted.getMinutes()).padStart(2, '0')}`;
+  if (!isQuietTime(clock, settings.quietHoursStart, settings.quietHoursEnd)) return adjusted;
+  if (settings.quietHoursStart > settings.quietHoursEnd && clock >= settings.quietHoursStart) adjusted.setDate(adjusted.getDate() + 1);
+  const [hour, minute] = settings.quietHoursEnd.split(':').map(Number);
+  adjusted.setHours(hour, minute, 0, 0);
+  return adjusted;
+}
+
 export function reminderId(habitId, date, suffix = 'habit') {
   const source = `${suffix}:${habitId}:${date}`;
   let hash = 2166136261;

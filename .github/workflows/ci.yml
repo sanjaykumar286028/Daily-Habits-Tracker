@@ -20,5 +20,5 @@ jobs:
       - run: npm ci --no-audit --no-fund
       - run: npm audit --audit-level=high
       - run: npm test
-      - run: node --check src/app.js && node --check src/domain.js
+      - run: node --check src/app.js && node --check src/domain.js && node --check src/native-reminders.js && node --check src/reminder-utils.js
       - run: npm run build

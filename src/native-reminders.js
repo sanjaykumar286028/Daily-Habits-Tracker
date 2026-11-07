@@ -1,6 +1,6 @@
 import { Capacitor } from '@capacitor/core';
 import { LocalNotifications } from '@capacitor/local-notifications';
-import { buildUpcomingReminders, reminderId } from './reminder-utils.js';
+import { buildUpcomingReminders, moveReminderOutOfQuietHours, reminderId } from './reminder-utils.js';
 
 const actionTypeId = 'habit-reminder-actions';
 const managedExtra = extra => extra?.kind === 'daily-habits-reminder';
@@ -52,12 +52,17 @@ export async function configureAndroidReminders({ onComplete, onDelivered }) {
       if (permission.display !== 'granted') return;
       const snoozeId = reminderId(extra.habitId, `${extra.date}:${Date.now()}`, 'snooze');
       const snoozeMinutes = [5,10,15,30].includes(Number(extra.snoozeMinutes)) ? Number(extra.snoozeMinutes) : 10;
+      const snoozeAt = moveReminderOutOfQuietHours(new Date(Date.now() + snoozeMinutes * 60_000), {
+        quietHoursEnabled:extra.quietHoursEnabled,
+        quietHoursStart:extra.quietHoursStart,
+        quietHoursEnd:extra.quietHoursEnd,
+      });
       await LocalNotifications.schedule({ notifications:[{
         id:snoozeId,
         title:'Daily Habits',
         body:'A planned habit is waiting. Tap to view your habits.',
-        schedule:{ at:new Date(Date.now() + snoozeMinutes * 60_000), allowWhileIdle:true },
-        channelId:channelId(true, true),
+        schedule:{ at:snoozeAt, allowWhileIdle:true },
+        channelId:channelId(extra.notificationSound !== false, extra.notificationVibration !== false),
         actionTypeId,
         extra:{ ...extra, snoozed:true },
         isExactNotification:false,
@@ -100,7 +105,15 @@ export async function refreshAndroidReminders(state) {
       schedule:{ at:reminder.at, allowWhileIdle:true },
       channelId:channelId(state.settings.notificationSound !== false, state.settings.notificationVibration !== false),
       actionTypeId,
-      extra:{ kind:'daily-habits-reminder', habitId:reminder.habitId, date:reminder.date, snoozeMinutes:Number(state.settings.snoozeMinutes)||10 },
+      extra:{
+        kind:'daily-habits-reminder', habitId:reminder.habitId, date:reminder.date,
+        snoozeMinutes:Number(state.settings.snoozeMinutes)||10,
+        notificationSound:state.settings.notificationSound,
+        notificationVibration:state.settings.notificationVibration,
+        quietHoursEnabled:state.settings.quietHoursEnabled,
+        quietHoursStart:state.settings.quietHoursStart,
+        quietHoursEnd:state.settings.quietHoursEnd,
+      },
       isExactNotification:false,
     })),
   });
