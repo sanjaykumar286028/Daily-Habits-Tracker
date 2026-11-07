@@ -2,7 +2,7 @@
 
 ## GitHub Pages
 
-`.github/workflows/github-pages.yml` builds the project with the repository subpath as `BASE_PATH`, runs the unit tests, and deploys `dist/` from `main`. GitHub Pages is enabled with **GitHub Actions** as the publishing source. The live site is `https://sanjaykumar286028.github.io/Daily-Habits-Tracker/`; the latest verified deployment is [workflow run 42029497130](https://github.com/sanjaykumar286028/Daily-Habits-Tracker/actions/runs/42029497130). The homepage and primary navigation were checked in a browser. The isolated browser used for QA did not expose IndexedDB or localStorage, so data persistence could not be verified there.
+`.github/workflows/github-pages.yml` builds the project with the repository subpath as `BASE_PATH`, runs the unit tests, and deploys `dist/` from `main`. GitHub Pages is enabled with **GitHub Actions** as the publishing source. The live site is `https://sanjaykumar286028.github.io/Daily-Habits-Tracker/`; the latest verified deployment is [workflow run 42374038699](https://github.com/sanjaykumar286028/Daily-Habits-Tracker/actions/runs/42374038699). The homepage and primary navigation were checked in a browser. The isolated browser used for QA did not expose IndexedDB or localStorage, so data persistence could not be verified there.
 
 Optional Supabase browser settings use repository variables `SUPABASE_URL` and `SUPABASE_ANON_KEY`. They are embedded in the public app bundle. Never set a `SUPABASE_SERVICE_ROLE_KEY` as a build variable.
 

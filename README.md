@@ -36,15 +36,15 @@ The manifest uses **Daily Habits Tracker** / **Habits** and the app-shell servic
 
 Capacitor configuration is in `capacitor.config.json` with app ID `com.sanjaykumar286028.dailyhabitstracker`. The Android workflow generates the native project and creates a debug APK plus an unsigned release candidate. A signed release artifact is produced only when protected keystore secrets are configured. No APK download link is published until a signed artifact is released and verified. See [Android build and release](docs/android-release.md).
 
-The previously verified Android workflow built a debug APK and unsigned release candidate. The signing step was skipped because the protected signing secrets are not configured. Reminder changes still need a successful Android workflow run and testing on a real device. APK artifacts are available in the [Android Actions run](https://github.com/sanjaykumar286028/Daily-Habits-Tracker/actions/runs/42029497076).
+The latest Android workflow built a debug APK and unsigned release candidate for the reminder changes. The signing step was skipped because the protected signing secrets are not configured. APK artifacts are available in the [Android Actions run](https://github.com/sanjaykumar286028/Daily-Habits-Tracker/actions/runs/42374038570). Test reminders on a real Android device before relying on them.
 
 ## Deployments and CI
 
-- GitHub Actions runs unit tests, syntax checks, and a production build.
-- GitHub Pages is enabled and deployed from `main` at `https://sanjaykumar286028.github.io/Daily-Habits-Tracker/`. The successful deployment run is [here](https://github.com/sanjaykumar286028/Daily-Habits-Tracker/actions/runs/42029497130).
+- GitHub Actions runs dependency audit, unit tests, syntax checks, and a production build.
+- GitHub Pages is enabled and deployed from `main` at `https://sanjaykumar286028.github.io/Daily-Habits-Tracker/`. The successful deployment run is [here](https://github.com/sanjaykumar286028/Daily-Habits-Tracker/actions/runs/42374038699).
 - The Cloudflare Pages workflow runs tests and builds. Its deployment step is skipped until the `CLOUDFLARE_ACCOUNT_ID` and `CLOUDFLARE_PAGES_PROJECT` repository variables and `CLOUDFLARE_API_TOKEN` secret are configured.
 - The Android workflow can produce APK artifacts in GitHub Actions. Signed release builds require the protected keystore secrets described in [Android build and release](docs/android-release.md).
-- CodeQL and CI completed successfully for commit `87f092d`. Reminder and dependency updates in the working tree need their own run before they can be called verified or deployed.
+- CodeQL and CI completed successfully for commit `2bf179b`.
 
 See [deployment instructions](docs/deployment.md). A workflow file or successful build does not mean a site has been deployed; verify the action run and live URL.
 
@@ -70,4 +70,4 @@ The local IndexedDB database is `daily-habits-v1` and stores a `schemaVersion: 1
 
 ## Current verification limits
 
-The local Node suite currently passes 25/25 tests. The pinned Capacitor packages have a lockfile and `npm audit` reported zero vulnerabilities at the time of the last audit. Rebuild and workflow results must still be checked for the pending reminder changes. Live Supabase/RLS testing, GitHub Supabase variable configuration, Cloudflare deployment, signed APK generation, and Android device testing remain outstanding. Browser navigation was checked on the published site, but that browser did not expose IndexedDB or localStorage, so persistence, PWA installation, and mobile/device behavior were not verified there.
+The local Node suite passes 26/26 tests. The pinned Capacitor packages have a lockfile; `npm audit --audit-level=high` passed in CI, and a full audit reported zero vulnerabilities when last run locally. Live Supabase/RLS testing, GitHub Supabase variable configuration, Cloudflare deployment, signed APK generation, and Android device testing remain outstanding.
