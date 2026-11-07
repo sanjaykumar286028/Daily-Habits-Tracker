@@ -4,12 +4,12 @@ await mkdir('dist', { recursive: true });
 for (const path of ['index.html', 'styles.css', 'manifest.json', 'sw.js', 'src', 'icons', '.nojekyll']) {
   await cp(path, `dist/${path}`, { recursive: true });
 }
+const buildVersion = (process.env.BUILD_VERSION || process.env.GITHUB_SHA || 'local').replace(/[^a-zA-Z0-9_-]/g, '').slice(0, 64);
 const supabaseUrl = process.env.SUPABASE_URL || '';
 const supabaseAnonKey = process.env.SUPABASE_ANON_KEY || '';
 if (Boolean(supabaseUrl) !== Boolean(supabaseAnonKey)) throw new Error('Set both SUPABASE_URL and SUPABASE_ANON_KEY, or leave both unset.');
 if (supabaseUrl && !validateSupabaseConfig(supabaseUrl, supabaseAnonKey)) throw new Error('Supabase configuration must use an HTTPS project URL and a publishable/anon key.');
 await writeFile('dist/src/public-config.js', `export const supabaseUrl = ${JSON.stringify(supabaseUrl)};\nexport const supabaseAnonKey = ${JSON.stringify(supabaseAnonKey)};\n`);
-const buildVersion = (process.env.BUILD_VERSION || process.env.GITHUB_SHA || 'local').replace(/[^a-zA-Z0-9_-]/g, '').slice(0, 64);
 const serviceWorkerPath = 'dist/sw.js';
 const serviceWorker = await readFile(serviceWorkerPath, 'utf8');
 await writeFile(serviceWorkerPath, serviceWorker.replace(/const CACHE_NAME = 'daily-habits-shell-[^']+';/, `const CACHE_NAME = 'daily-habits-shell-${buildVersion}';`));
@@ -35,6 +35,12 @@ try {
 } catch (error) {
   if (error.code !== 'ENOENT') throw error;
 }
+const appPath = 'dist/src/app.js';
+const appSource = await readFile(appPath, 'utf8');
+await writeFile(appPath, appSource.replace("from './public-config.js';", `from './public-config.js?v=${buildVersion}';`));
+const builtHtmlPath = 'dist/index.html';
+const builtHtml = await readFile(builtHtmlPath, 'utf8');
+await writeFile(builtHtmlPath, builtHtml.replace('src="./src/app.js"', `src="./src/app.js?v=${buildVersion}"`));
 const toneRate = 22050, toneSamples = Math.floor(toneRate * 0.18), tone = Buffer.alloc(44 + toneSamples * 2);
 tone.write('RIFF', 0); tone.writeUInt32LE(tone.length - 8, 4); tone.write('WAVE', 8); tone.write('fmt ', 12);
 tone.writeUInt32LE(16, 16); tone.writeUInt16LE(1, 20); tone.writeUInt16LE(1, 22); tone.writeUInt32LE(toneRate, 24);
