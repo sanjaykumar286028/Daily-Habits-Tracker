@@ -54,4 +54,3 @@ test('sync uploads merged guest records and stores profile preferences through t
   assert.deepEqual(calls[0], ['read','owner-1']);
   assert.equal(calls[1][1].some(row => row.collection === 'preferences'), true);
 });
-

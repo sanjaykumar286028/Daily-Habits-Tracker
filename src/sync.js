@@ -62,4 +62,3 @@ export async function syncState(client, state, userId, now = Date.now()) {
   await client.upsertSyncRecords(result.rows);
   return result.state;
 }
-

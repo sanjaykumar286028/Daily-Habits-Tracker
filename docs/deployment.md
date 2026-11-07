@@ -19,4 +19,3 @@ The service worker caches only the static application shell, not journal records
 ## Remaining owner configuration
 
 GitHub Pages is already enabled and deployed. To enable Cloudflare deploys, configure a Pages project, `CLOUDFLARE_ACCOUNT_ID`, `CLOUDFLARE_PAGES_PROJECT`, and the protected `CLOUDFLARE_API_TOKEN` secret. The latest Cloudflare run built the app successfully but skipped its deploy step because these values are not set. Configure `SUPABASE_URL` and `SUPABASE_ANON_KEY` only if cloud sync is desired.
-

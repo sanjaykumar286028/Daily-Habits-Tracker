@@ -69,5 +69,4 @@ The local IndexedDB database is `daily-habits-v1` and stores a `schemaVersion: 1
 
 ## Current verification limits
 
-The current automated suite passes 18/18 Node tests. GitHub Actions Verify and CodeQL pass, the Android debug/unsigned builds pass, and GitHub Pages is deployed. Browser navigation was checked on the published site with no console errors. The embedded test browser did not expose IndexedDB or localStorage, so persistence, PWA installation, and mobile/device behavior could not be verified there. Live Supabase/RLS testing, npm audit, Cloudflare deployment, signed APK generation, and Android device testing remain outstanding.
-
+The current local automated suite passes 20/20 Node tests and `node scripts/build.mjs` succeeds. GitHub Pages has previously been deployed; the latest remote CI/deployment status and configuration must be checked before claiming a new revision is live. Live Supabase/RLS testing, GitHub Supabase variable configuration, dependency audit, Cloudflare deployment, signed APK generation, and Android device testing remain outstanding. Browser navigation was checked on the published site, but the embedded browser did not expose IndexedDB or localStorage, so persistence, PWA installation, and mobile/device behavior were not verified there.

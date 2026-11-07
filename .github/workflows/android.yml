@@ -83,4 +83,3 @@ jobs:
           name: daily-habits-release-apk
           path: android/app/build/outputs/apk/release/*-signed.apk
           if-no-files-found: ignore
-

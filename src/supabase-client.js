@@ -4,8 +4,18 @@ export function validateSupabaseConfig(url, anonKey) {
   if (typeof url !== 'string' || typeof anonKey !== 'string' || !url || !anonKey) return false;
   try {
     const parsed = new URL(url);
-    return (parsed.protocol === 'https:' || ['localhost', '127.0.0.1'].includes(parsed.hostname))
+    const safeUrl = (parsed.protocol === 'https:' || ['localhost', '127.0.0.1'].includes(parsed.hostname))
       && !parsed.username && !parsed.password && !parsed.search && !parsed.hash;
+    if (!safeUrl || anonKey.startsWith('sb_secret_')) return false;
+    if (anonKey.startsWith('sb_publishable_')) return anonKey.length >= 32;
+    // Legacy anon keys are JWTs. Never embed a service_role JWT in a browser build.
+    const payload = anonKey.split('.')[1];
+    if (!payload) return false;
+    const normalized = payload.replace(/-/g, '+').replace(/_/g, '/');
+    const decoded = typeof atob === 'function'
+      ? atob(normalized.padEnd(Math.ceil(normalized.length / 4) * 4, '='))
+      : Buffer.from(normalized, 'base64').toString('utf8');
+    return JSON.parse(decoded).role === 'anon';
   } catch {
     return false;
   }
@@ -188,4 +198,3 @@ export class SupabaseClient {
     }
   }
 }
-

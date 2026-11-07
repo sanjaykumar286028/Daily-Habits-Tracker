@@ -20,4 +20,3 @@ jobs:
       - run: npm test
       - run: node --check src/app.js && node --check src/domain.js
       - run: npm run build
-

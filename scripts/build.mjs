@@ -22,4 +22,3 @@ if (basePath !== './') {
   await writeFile(manifestPath, `${JSON.stringify(manifest, null, 2)}\n`);
 }
 console.log('Static site built in dist/');
-

@@ -67,6 +67,11 @@ test('backup validation rejects markup-bearing IDs, invalid dates, duplicate log
   ] }), false);
 });
 
+test('backup validation bounds expensive streak history from very old habit dates', () => {
+  const backup = { schemaVersion:1, habits:['old-a','old-b','old-c'].map(id => ({ id, name:'Old habit', startDate:'0001-01-01', frequency:'daily' })), logs:[] };
+  assert.equal(validateBackup(backup), false);
+});
+
 test('habit end dates constrain scheduling and reject reversed ranges in backups', () => {
   const habit = { startDate: '2026-11-02', endDate: '2026-11-04', frequency: 'daily' };
   assert.equal(isScheduled(habit, '2026-11-04'), true);
@@ -124,4 +129,3 @@ test('calendar month navigation clamps to month start across short months', () =
   assert.equal(localDate(shiftMonth(new Date(2026, 0, 31), 1)), '2026-02-01');
   assert.equal(shiftMonth(new Date(2026, 11, 20), 1).getMonth(), 0);
 });
-

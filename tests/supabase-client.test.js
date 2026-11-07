@@ -16,9 +16,15 @@ function jsonResponse(body, status = 200) {
 }
 
 test('Supabase configuration requires HTTPS except for local development', () => {
-  assert.equal(validateSupabaseConfig('https://habits.supabase.co', 'publishable-key'), true);
+  const anonJwt = `header.${Buffer.from(JSON.stringify({ role:'anon' })).toString('base64url')}.signature`;
+  assert.equal(validateSupabaseConfig('https://habits.supabase.co', `sb_publishable_${'x'.repeat(32)}`), true);
+  assert.equal(validateSupabaseConfig('https://habits.supabase.co', anonJwt), true);
+  assert.equal(validateSupabaseConfig('https://habits.supabase.co', `sb_secret_${'x'.repeat(32)}`), false);
+  const serviceJwt = `header.${Buffer.from(JSON.stringify({ role:'service_role' })).toString('base64url')}.signature`;
+  assert.equal(validateSupabaseConfig('https://habits.supabase.co', serviceJwt), false);
+  assert.equal(validateSupabaseConfig('https://habits.supabase.co', 'publishable-key'), false);
   assert.equal(validateSupabaseConfig('http://habits.supabase.co', 'key'), false);
-  assert.equal(validateSupabaseConfig('http://localhost:54321', 'key'), true);
+  assert.equal(validateSupabaseConfig('http://localhost:54321', `sb_publishable_${'x'.repeat(32)}`), true);
   assert.equal(validateSupabaseConfig('https://user:pass@habits.supabase.co', 'key'), false);
   assert.equal(validateSupabaseConfig('', ''), false);
 });
@@ -27,7 +33,7 @@ test('password sign-in stores a user session and applies anon and bearer headers
   const calls = [];
   const storage = memoryStorage();
   const client = new SupabaseClient({
-    url:'https://habits.supabase.co', anonKey:'public-key', storage,
+    url:'https://habits.supabase.co', anonKey:`sb_publishable_${'x'.repeat(32)}`, storage,
     fetchImpl:async (url, options) => {
       calls.push({ url, options });
       return jsonResponse({ access_token:'user-token', refresh_token:'refresh-token', expires_in:3600, user:{ id:'user-1', email:'person@example.com' } });
@@ -36,8 +42,8 @@ test('password sign-in stores a user session and applies anon and bearer headers
   const user = await client.signIn('person@example.com', 'correct horse battery');
   assert.equal(user.id, 'user-1');
   assert.equal(client.session.access_token, 'user-token');
-  assert.equal(calls[0].options.headers.apikey, 'public-key');
-  assert.equal(calls[0].options.headers.Authorization, 'Bearer public-key');
+  assert.equal(calls[0].options.headers.apikey, `sb_publishable_${'x'.repeat(32)}`);
+  assert.equal(calls[0].options.headers.Authorization, `Bearer sb_publishable_${'x'.repeat(32)}`);
   assert.equal(calls[0].options.credentials, 'omit');
 });
 
@@ -45,7 +51,7 @@ test('expired sessions refresh before restoring the signed-in user', async () =>
   const storage = memoryStorage();
   const calls = [];
   const client = new SupabaseClient({
-    url:'https://habits.supabase.co', anonKey:'public-key', storage,
+    url:'https://habits.supabase.co', anonKey:`sb_publishable_${'x'.repeat(32)}`, storage,
     fetchImpl:async (url, options) => {
       calls.push({ url, options });
       if (url.includes('grant_type=refresh_token')) return jsonResponse({ access_token:'fresh-token', refresh_token:'next-refresh', expires_in:3600, user:{ id:'user-2' } });
@@ -59,4 +65,3 @@ test('expired sessions refresh before restoring the signed-in user', async () =>
   assert.equal(calls.length, 2);
   assert.match(calls[1].options.headers.Authorization, /fresh-token/);
 });
-

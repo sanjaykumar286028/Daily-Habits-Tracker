@@ -78,6 +78,14 @@ export function validateBackup(data) {
     || (h.days !== undefined && (!Array.isArray(h.days) || h.days.some(day => !Number.isInteger(day) || day < 0 || day > 6)))
     || (h.color !== undefined && (typeof h.color !== 'string' || !/^#[0-9a-f]{6}$/i.test(h.color)))
     || (h.target !== undefined && (!Number.isFinite(Number(h.target)) || Number(h.target) < 1)))) return false;
+  // Streak views scan scheduled dates. Bound aggregate work for imported data
+  // so a small backup containing very old start dates cannot freeze rendering.
+  const todayDay = Math.floor(Date.now() / 86400000);
+  const streakWorkDays = data.habits.reduce((total, habit) => {
+    const startDay = Math.floor(Date.parse(`${habit.startDate}T00:00:00Z`) / 86400000);
+    return total + Math.max(0, todayDay - startDay);
+  }, 0);
+  if (streakWorkDays > 2_000_000) return false;
   if (!uniqueIds(data.habits) || !validRows(data.logs, ['id', 'habitId', 'date', 'status']) || !uniqueIds(data.logs) || new Set(data.logs.map(log => `${log.habitId}:${log.date}`)).size !== data.logs.length || data.logs.some(log =>
     !validId(log.id) || !validId(log.habitId) || !validDate(log.date) || !['done', 'skip'].includes(log.status)
     || (log.value !== undefined && (!Number.isFinite(Number(log.value)) || Number(log.value) < 0))
@@ -134,4 +142,3 @@ export function shiftMonth(date, offset) {
   shifted.setMonth(shifted.getMonth() + Number(offset));
   return shifted;
 }
-
