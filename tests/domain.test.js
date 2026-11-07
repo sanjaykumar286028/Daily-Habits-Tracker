@@ -72,6 +72,13 @@ test('backup validation bounds expensive streak history from very old habit date
   assert.equal(validateBackup(backup), false);
 });
 
+test('backup validation checks reminder settings', () => {
+  const backup = { schemaVersion:1, habits:[], logs:[], settings:{ reminders:true, notificationSound:false, quietHoursEnabled:true, quietHoursStart:'22:00', quietHoursEnd:'08:00', snoozeMinutes:15 } };
+  assert.equal(validateBackup(backup), true);
+  assert.equal(validateBackup({ ...backup, settings:{ ...backup.settings, quietHoursStart:'27:00' } }), false);
+  assert.equal(validateBackup({ ...backup, settings:{ ...backup.settings, snoozeMinutes:7 } }), false);
+});
+
 test('habit end dates constrain scheduling and reject reversed ranges in backups', () => {
   const habit = { startDate: '2026-11-02', endDate: '2026-11-04', frequency: 'daily' };
   assert.equal(isScheduled(habit, '2026-11-04'), true);

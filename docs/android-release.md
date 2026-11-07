@@ -33,4 +33,4 @@ The website does not show an APK download link unless a signed release has actua
 
 ## App identity and permissions
 
-The application ID is stable and must not change after publishing. The wrapper requests no additional Android permissions; web notification support depends on the Android WebView and browser/OS support. Test notification behaviour on real Android devices before relying on it.
+The application ID is stable and must not change after publishing. Android reminders use Capacitor Local Notifications and request notification permission at runtime. They use inexact scheduling, so they do not require exact-alarm access; Android Doze mode and device-vendor battery controls can still delay delivery. Android can restore scheduled notifications after reboot, but test reboot behaviour, permission denial, quiet hours, sound/vibration, snooze, and mark-complete actions on real devices. Browser reminders are checked only while the app is open.

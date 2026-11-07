@@ -34,7 +34,7 @@ jobs:
       - uses: android-actions/setup-android@be39fa834029ff78f1a44aa3bb0819b8fc2bd8fd # v4.0.4
         with:
           packages: platform-tools platforms;android-36 build-tools;36.0.0
-      - run: npm install --no-audit --no-fund
+      - run: npm ci --no-audit --no-fund
       - run: npm test
       - name: Build static app
         run: npm run build
@@ -42,6 +42,8 @@ jobs:
           SUPABASE_URL: ${{ vars.SUPABASE_URL }}
           SUPABASE_ANON_KEY: ${{ vars.SUPABASE_ANON_KEY }}
       - run: npx cap add android
+      - name: Install notification sound resource
+        run: mkdir -p android/app/src/main/res/raw && cp dist/reminder.wav android/app/src/main/res/raw/reminder.wav
       - run: npx cap sync android
       - run: cd android && ./gradlew assembleDebug assembleRelease
       - id: signing_configuration

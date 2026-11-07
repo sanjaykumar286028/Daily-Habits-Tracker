@@ -17,6 +17,8 @@ jobs:
       - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7
         with:
           node-version: 24
+      - run: npm ci --no-audit --no-fund
+      - run: npm audit --audit-level=high
       - run: npm test
       - run: node --check src/app.js && node --check src/domain.js
       - run: npm run build

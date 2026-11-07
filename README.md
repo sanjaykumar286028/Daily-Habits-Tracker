@@ -25,6 +25,7 @@ Open `http://127.0.0.1:4173`. Service workers, notifications, and PWA install pr
 - Rule-based insights and achievement conditions based on saved activity.
 - PWA install prompt when the browser provides one, manual installation instructions otherwise, and a user-controlled service-worker update prompt.
 - Optional browser reminders at a habit's preferred time while the app is open and notification permission is granted.
+- Android local reminders for scheduled habits, with weekday/date rules, quiet hours, sound/vibration controls, snooze, and completion actions. Android queues the next 14 days; browsers only check reminders while the app is open.
 - Custom focus countdowns from 1 minute to 999 hours 59 minutes, with saved duration, pause/resume/reset, and accurate completed-session totals.
 
 ## PWA installation and updates
@@ -35,7 +36,7 @@ The manifest uses **Daily Habits Tracker** / **Habits** and the app-shell servic
 
 Capacitor configuration is in `capacitor.config.json` with app ID `com.sanjaykumar286028.dailyhabitstracker`. The Android workflow generates the native project and creates a debug APK plus an unsigned release candidate. A signed release artifact is produced only when protected keystore secrets are configured. No APK download link is published until a signed artifact is released and verified. See [Android build and release](docs/android-release.md).
 
-The Android workflow has built the debug APK and unsigned release candidate. The signing step was skipped because the protected signing secrets are not configured. APK artifacts are available in the [Android Actions run](https://github.com/sanjaykumar286028/Daily-Habits-Tracker/actions/runs/42029497076). No APK was installed on a device.
+The previously verified Android workflow built a debug APK and unsigned release candidate. The signing step was skipped because the protected signing secrets are not configured. Reminder changes still need a successful Android workflow run and testing on a real device. APK artifacts are available in the [Android Actions run](https://github.com/sanjaykumar286028/Daily-Habits-Tracker/actions/runs/42029497076).
 
 ## Deployments and CI
 
@@ -43,7 +44,7 @@ The Android workflow has built the debug APK and unsigned release candidate. The
 - GitHub Pages is enabled and deployed from `main` at `https://sanjaykumar286028.github.io/Daily-Habits-Tracker/`. The successful deployment run is [here](https://github.com/sanjaykumar286028/Daily-Habits-Tracker/actions/runs/42029497130).
 - The Cloudflare Pages workflow runs tests and builds. Its deployment step is skipped until the `CLOUDFLARE_ACCOUNT_ID` and `CLOUDFLARE_PAGES_PROJECT` repository variables and `CLOUDFLARE_API_TOKEN` secret are configured.
 - The Android workflow can produce APK artifacts in GitHub Actions. Signed release builds require the protected keystore secrets described in [Android build and release](docs/android-release.md).
-- CodeQL completed successfully for commit `9c56d6a`.
+- CodeQL and CI completed successfully for commit `87f092d`. Reminder and dependency updates in the working tree need their own run before they can be called verified or deployed.
 
 See [deployment instructions](docs/deployment.md). A workflow file or successful build does not mean a site has been deployed; verify the action run and live URL.
 
@@ -69,4 +70,4 @@ The local IndexedDB database is `daily-habits-v1` and stores a `schemaVersion: 1
 
 ## Current verification limits
 
-The current local automated suite passes 20/20 Node tests and `node scripts/build.mjs` succeeds. GitHub Pages has previously been deployed; the latest remote CI/deployment status and configuration must be checked before claiming a new revision is live. Live Supabase/RLS testing, GitHub Supabase variable configuration, dependency audit, Cloudflare deployment, signed APK generation, and Android device testing remain outstanding. Browser navigation was checked on the published site, but the embedded browser did not expose IndexedDB or localStorage, so persistence, PWA installation, and mobile/device behavior were not verified there.
+The local Node suite currently passes 25/25 tests. The pinned Capacitor packages have a lockfile and `npm audit` reported zero vulnerabilities at the time of the last audit. Rebuild and workflow results must still be checked for the pending reminder changes. Live Supabase/RLS testing, GitHub Supabase variable configuration, Cloudflare deployment, signed APK generation, and Android device testing remain outstanding. Browser navigation was checked on the published site, but that browser did not expose IndexedDB or localStorage, so persistence, PWA installation, and mobile/device behavior were not verified there.

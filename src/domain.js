@@ -115,6 +115,12 @@ export function validateBackup(data) {
     || (data.settings.theme !== undefined && !['light', 'dark'].includes(data.settings.theme))
     || (data.settings.weekStart !== undefined && !['monday', 'sunday'].includes(data.settings.weekStart))
     || (data.settings.reminders !== undefined && typeof data.settings.reminders !== 'boolean')
+    || (data.settings.notificationSound !== undefined && typeof data.settings.notificationSound !== 'boolean')
+    || (data.settings.notificationVibration !== undefined && typeof data.settings.notificationVibration !== 'boolean')
+    || (data.settings.quietHoursEnabled !== undefined && typeof data.settings.quietHoursEnabled !== 'boolean')
+    || (data.settings.quietHoursStart !== undefined && (typeof data.settings.quietHoursStart !== 'string' || !/^([01]\d|2[0-3]):[0-5]\d$/.test(data.settings.quietHoursStart)))
+    || (data.settings.quietHoursEnd !== undefined && (typeof data.settings.quietHoursEnd !== 'string' || !/^([01]\d|2[0-3]):[0-5]\d$/.test(data.settings.quietHoursEnd)))
+    || (data.settings.snoozeMinutes !== undefined && ![5, 10, 15, 30].includes(Number(data.settings.snoozeMinutes)))
     || (data.settings.timezone !== undefined && (typeof data.settings.timezone !== 'string' || data.settings.timezone.length > 64)))) return false;
   return true;
 }

@@ -8,5 +8,12 @@ android/.gradle/
 android/app/build/
 *.jks
 *.keystore
+*.p12
+*.pfx
+*.pem
+*.key
+*.mobileprovision
+*.apk
+*.aab
 playwright-report/
 test-results/
