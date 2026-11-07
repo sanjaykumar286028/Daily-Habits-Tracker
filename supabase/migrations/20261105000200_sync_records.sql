@@ -11,7 +11,7 @@ create table if not exists public.user_sync_records (
 create index if not exists user_sync_records_user_updated_idx
   on public.user_sync_records (user_id, updated_at);
 
-revoke all on table public.user_sync_records from public, anon;
+revoke all on table public.user_sync_records from public, anon, authenticated;
 grant select, insert, update, delete on table public.user_sync_records to authenticated;
 
 alter table public.user_sync_records enable row level security;
