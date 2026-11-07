@@ -25,6 +25,7 @@ Open `http://127.0.0.1:4173`. Service workers, notifications, and PWA install pr
 - Rule-based insights and achievement conditions based on saved activity.
 - PWA install prompt when the browser provides one, manual installation instructions otherwise, and a user-controlled service-worker update prompt.
 - Optional browser reminders at a habit's preferred time while the app is open and notification permission is granted.
+- Custom focus countdowns from 1 minute to 999 hours 59 minutes, with saved duration, pause/resume/reset, and accurate completed-session totals.
 
 ## PWA installation and updates
 

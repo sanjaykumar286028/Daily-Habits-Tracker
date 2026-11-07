@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { isScheduled, completionSummary, validateBackup, habitStreak, goalProgress, remainingSeconds, shiftMonth } from '../src/domain.js';
+import { isScheduled, completionSummary, validateBackup, habitStreak, goalProgress, remainingSeconds, shiftMonth, focusDurationFromParts, formatFocusTime } from '../src/domain.js';
 
 test('scheduling respects weekdays, selected days, and start dates', () => {
   const weekdays = { startDate: '2026-11-02', frequency: 'weekdays' };
@@ -104,6 +104,18 @@ test('focus remaining time follows the deadline rather than timer tick count', (
   assert.equal(remainingSeconds(15000, 1000), 14);
   assert.equal(remainingSeconds(1000, 1000), 0);
   assert.equal(remainingSeconds(500, 1000), 0);
+});
+
+test('focus timer accepts and formats custom minute and hour durations', () => {
+  assert.equal(focusDurationFromParts(0, 25), 25 * 60);
+  assert.equal(focusDurationFromParts(2, 30), 150 * 60);
+  assert.equal(focusDurationFromParts(999, 59), (999 * 60 + 59) * 60);
+  assert.equal(focusDurationFromParts(0, 0), null);
+  assert.equal(focusDurationFromParts(1, 60), null);
+  assert.equal(focusDurationFromParts(1000, 0), null);
+  assert.equal(focusDurationFromParts(1.5, 0), null);
+  assert.equal(formatFocusTime(25 * 60), '25:00');
+  assert.equal(formatFocusTime(2 * 3600 + 30 * 60 + 5), '2:30:05');
 });
 
 test('calendar month navigation clamps to month start across short months', () => {

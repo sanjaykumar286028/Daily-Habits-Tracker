@@ -1,4 +1,4 @@
-const CACHE_NAME = 'daily-habits-shell-v3';
+const CACHE_NAME = 'daily-habits-shell-v4';
 const BASE = new URL(self.registration.scope);
 const SHELL = ['', 'index.html', 'styles.css', 'src/app.js', 'src/domain.js', 'src/public-config.js', 'src/supabase-client.js', 'src/sync.js', 'manifest.json', 'icons/icon.svg', 'icons/icon-192.png', 'icons/icon-512.png']
   .map(path => new URL(path, BASE).href);

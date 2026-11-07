@@ -115,6 +115,20 @@ export function remainingSeconds(deadline, now = Date.now()) {
   return Math.max(0, Math.ceil((deadline - now) / 1000));
 }
 
+export function focusDurationFromParts(hours, minutes) {
+  const h = Number(hours), m = Number(minutes);
+  if (!Number.isInteger(h) || h < 0 || h > 999 || !Number.isInteger(m) || m < 0 || m > 59) return null;
+  const total = h * 3600 + m * 60;
+  return total >= 60 ? total : null;
+}
+
+export function formatFocusTime(seconds) {
+  const total = Math.max(0, Math.floor(Number(seconds) || 0));
+  const pad = value => String(value).padStart(2, '0');
+  if (total >= 3600) return `${Math.floor(total / 3600)}:${pad(Math.floor(total % 3600 / 60))}:${pad(total % 60)}`;
+  return `${pad(Math.floor(total / 60))}:${pad(total % 60)}`;
+}
+
 export function shiftMonth(date, offset) {
   const shifted = new Date(date.getFullYear(), date.getMonth(), 1);
   shifted.setMonth(shifted.getMonth() + Number(offset));
