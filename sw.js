@@ -1,7 +1,13 @@
 const CACHE_NAME = 'daily-habits-shell-v4';
 const BASE = new URL(self.registration.scope);
+const VERSION = CACHE_NAME.replace('daily-habits-shell-', '');
+const shellUrl = path => {
+  const url = new URL(path, BASE);
+  url.searchParams.set('v', VERSION);
+  return url.href;
+};
 const SHELL = ['', 'index.html', 'styles.css', 'src/app.js', 'src/domain.js', 'src/public-config.js', 'src/supabase-client.js', 'src/sync.js', 'manifest.json', 'icons/icon.svg', 'icons/icon-192.png', 'icons/icon-512.png']
-  .map(path => new URL(path, BASE).href);
+  .map(shellUrl);
 
 self.addEventListener('install', event => {
   event.waitUntil(caches.open(CACHE_NAME).then(cache => cache.addAll(SHELL)));
@@ -26,9 +32,9 @@ self.addEventListener('fetch', event => {
   const isShellAsset = SHELL.includes(url.href);
   if (request.mode === 'navigate') {
     event.respondWith(fetch(request).then(response => {
-      if (response.ok) caches.open(CACHE_NAME).then(cache => cache.put(new URL('index.html', BASE).href, response.clone()));
+      if (response.ok) caches.open(CACHE_NAME).then(cache => cache.put(shellUrl('index.html'), response.clone()));
       return response;
-    }).catch(async () => (await caches.match(new URL('index.html', BASE).href)) || caches.match(new URL('', BASE).href)));
+    }).catch(async () => (await caches.match(shellUrl('index.html'))) || caches.match(shellUrl(''))));
     return;
   }
   if (!isShellAsset) return;
@@ -37,3 +43,4 @@ self.addEventListener('fetch', event => {
     return response;
   })));
 });
+
