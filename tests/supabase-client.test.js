@@ -126,6 +126,28 @@ test('incorrect login credentials preserve the server error and create no sessio
   assert.equal(client.session, null);
 });
 
+test('Google OAuth uses the app callback and only OpenID, email, and profile scopes', () => {
+  const client = new SupabaseClient({
+    url:'https://habits.supabase.co', anonKey:`sb_publishable_${'x'.repeat(32)}`, storage:memoryStorage(), redirectUrl:'https://example.github.io/habits/',
+  });
+  const url = new URL(client.googleOAuthUrl());
+  assert.equal(url.origin, 'https://habits.supabase.co');
+  assert.equal(url.pathname, '/auth/v1/authorize');
+  assert.equal(url.searchParams.get('provider'), 'google');
+  assert.equal(url.searchParams.get('redirect_to'), 'https://example.github.io/habits/');
+  assert.equal(url.searchParams.get('scopes'), 'openid email profile');
+});
+
+test('Google OAuth rejects an invalid or external app callback', () => {
+  const invalid = new SupabaseClient({ url:'https://habits.supabase.co', anonKey:`sb_publishable_${'x'.repeat(32)}`, storage:memoryStorage(), redirectUrl:'javascript:alert(1)' });
+  assert.throws(() => invalid.googleOAuthUrl(), /return URL is invalid/);
+  const external = new SupabaseClient({ url:'https://habits.supabase.co', anonKey:`sb_publishable_${'x'.repeat(32)}`, storage:memoryStorage(), redirectUrl:'https://attacker.example/callback' });
+  const priorLocation = globalThis.location;
+  globalThis.location = { origin:'https://example.github.io' };
+  try { assert.throws(() => external.googleOAuthUrl(), /must stay on this app/); }
+  finally { if (priorLocation === undefined) delete globalThis.location; else globalThis.location = priorLocation; }
+});
+
 test('confirmation resend and recovery use the app redirect and email-only request body', async () => {
   const calls = [];
   const client = new SupabaseClient({
@@ -153,6 +175,8 @@ test('email confirmation and recovery callbacks persist sessions and clean token
   assert.equal(cleanedUrl, '/habits/');
   assert.equal(callback('recovery'), 'recovery');
   assert.equal(client.session.access_token, 'access-recovery');
+  assert.equal(callback('oauth'), 'oauth');
+  assert.equal(client.session.access_token, 'access-oauth');
   assert.equal(client.acceptRecoveryFromUrl({ hash:'#type=signup' }), false);
 });
 

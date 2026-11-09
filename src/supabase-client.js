@@ -177,6 +177,23 @@ export class SupabaseClient {
     return result.user;
   }
 
+  googleOAuthUrl() {
+    if (!this.redirectUrl) throw new Error('This app could not determine a secure sign-in return URL.');
+    let redirect;
+    try { redirect = new URL(this.redirectUrl); } catch { throw new Error('The Google sign-in return URL is invalid.'); }
+    if (!['https:', 'http:'].includes(redirect.protocol) || redirect.username || redirect.password || redirect.hash) {
+      throw new Error('The Google sign-in return URL is invalid.');
+    }
+    if (typeof location !== 'undefined' && location.origin && redirect.origin !== location.origin) {
+      throw new Error('The Google sign-in return URL must stay on this app.');
+    }
+    const authorization = new URL(`${this.url}/auth/v1/authorize`);
+    authorization.searchParams.set('provider', 'google');
+    authorization.searchParams.set('redirect_to', redirect.href);
+    authorization.searchParams.set('scopes', 'openid email profile');
+    return authorization.toString();
+  }
+
   async currentUser() {
     const token = await this.validAccessToken();
     if (!token) return null;
@@ -230,7 +247,8 @@ export class SupabaseClient {
     const search = urlState.search ?? currentLocation.search ?? '';
     const params = new URLSearchParams(currentHash.replace(/^#/, ''));
     const type = params.get('type');
-    if (!['recovery', 'signup', 'invite', 'email'].includes(type) || !params.get('access_token') || !params.get('refresh_token')) return false;
+    if (!params.get('access_token') || !params.get('refresh_token')) return false;
+    const callbackType = ['recovery', 'signup', 'invite', 'email'].includes(type) ? type : 'oauth';
     this.saveSession({
       access_token:params.get('access_token'), refresh_token:params.get('refresh_token'),
       expires_in:Number(params.get('expires_in') || 3600), token_type:params.get('token_type') || 'bearer',
@@ -238,7 +256,7 @@ export class SupabaseClient {
     const replaceState = urlState.replaceState || (typeof history !== 'undefined' ? history.replaceState.bind(history) : () => {});
     const title = typeof document === 'undefined' ? '' : document.title;
     replaceState(null, title, `${pathname}${search}`);
-    return type;
+    return callbackType;
   }
 
   async getSyncRecords(userId) {

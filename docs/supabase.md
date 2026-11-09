@@ -30,7 +30,24 @@ The Supabase Dashboard login is an administrator account, separate from a Daily 
 
 If sign-in returns `Invalid login credentials`, the Auth endpoint was reached, but the response alone cannot distinguish a missing app user from a wrong password. Verify whether the exact email is listed under Authentication → Users in this project and whether it is confirmed. Do not infer user existence from Dashboard access, and do not disable confirmation or RLS as a workaround. Password-reset and resend endpoints intentionally avoid revealing whether an email is registered.
 
-For GitHub OAuth, configure a GitHub OAuth app and its client ID/secret in Supabase's GitHub provider settings, then use Supabase's project callback URI and allow the deployed app URL. This repository does not enable a GitHub OAuth button until those owner-managed provider credentials and callback settings exist; never put the OAuth client secret in this public repository or browser build.
+## Google sign-in
+
+The Settings panel supports a web Google OAuth entry point through Supabase Auth. The app requests only openid email profile, establishes a Supabase session on return, restores that session on reload, and keeps Email/Password and Guest modes available. Google OAuth itself requires a network connection. Before starting Google sign-in, the user must explicitly agree to sync the current device's local records, including journal entries; if the migration fails, IndexedDB and the local recovery copy remain available. A Google return without that consent does not upload guest records. Existing cloud sync stays scoped to the authenticated Supabase user by the RLS policies.
+
+Supabase uses its own provider callback, then returns the browser to the app. In Google Cloud Console create a Web application OAuth client under Google Auth Platform. Configure the consent screen branding with Daily Habits Tracker, add the user-support and developer-contact email addresses, choose External audience, and keep the app in Testing with only intended tester accounts until you complete Google verification/publishing. In Data Access, request only openid, .../auth/userinfo.email, and .../auth/userinfo.profile.
+
+Google OAuth client settings:
+
+- Authorized JavaScript origins: https://sanjaykumar286028.github.io and local development http://127.0.0.1:4173.
+- Authorized redirect URI: the exact callback shown in Supabase → Authentication → Sign In / Providers → Google. With the verified project reference fsyjuijrwglpqswysxkc, the expected Supabase callback is https://fsyjuijrwglpqswysxkc.supabase.co/auth/v1/callback; confirm it matches the Dashboard before saving the Google client. This callback is not the post-login application URL.
+- Do not add a Cloudflare origin: no Cloudflare production domain is configured or verified for this repository.
+
+Then in Supabase Dashboard → Authentication → Sign In / Providers → Google, enable Google, enter the Web client ID and secret directly in the Dashboard, and save. Never put the secret in GitHub, frontend files, build variables, or this chat. In Authentication → URL Configuration, set Site URL to https://sanjaykumar286028.github.io/Daily-Habits-Tracker/ and allow that exact app URL plus http://127.0.0.1:4173/. These are post-login destinations; the Supabase callback above is the Google redirect URI.
+
+Supabase Auth performs its documented identity-linking behavior for OAuth identities with matching email addresses; the app does not independently merge accounts based on email text. Review Supabase's identity-linking rules and ensure email confirmation remains enabled for password accounts. No user records are deleted or overwritten during identity linking; local app records are merged only after the explicit sync consent described above.
+
+The repository has no generated android/ Capacitor platform or native Google Sign-In plugin. The app ID in capacitor.config.json is com.sanjaykumar286028.dailyhabitstracker, but there are no Android signing fingerprints to verify. This implementation is web/PWA OAuth; native Android Google OAuth is not implemented or verified. Do not ship Android Google sign-in until a secure native flow (Google Android OAuth client, package/SHA-1 fingerprints, and deep-link/session handling) is configured and tested. Google Client Secrets must never be embedded in an APK.
+
 
 Sign-out leaves local records intact. **Delete local data** signs out and deletes device data; it does not delete the account's cloud copy. Users can sign in again to retrieve cloud records.
 
