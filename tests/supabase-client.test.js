@@ -126,26 +126,56 @@ test('incorrect login credentials preserve the server error and create no sessio
   assert.equal(client.session, null);
 });
 
-test('Google OAuth uses the app callback and only OpenID, email, and profile scopes', () => {
+test('Google OAuth uses a PKCE callback and only OpenID, email, and profile scopes', async () => {
+  const storage = memoryStorage();
   const client = new SupabaseClient({
-    url:'https://habits.supabase.co', anonKey:`sb_publishable_${'x'.repeat(32)}`, storage:memoryStorage(), redirectUrl:'https://example.github.io/habits/',
+    url:'https://habits.supabase.co', anonKey:`sb_publishable_${'x'.repeat(32)}`, storage, pkceStorage:storage, redirectUrl:'https://example.github.io/habits/',
   });
-  const url = new URL(client.googleOAuthUrl());
+  const url = new URL(await client.googleOAuthUrl());
   assert.equal(url.origin, 'https://habits.supabase.co');
   assert.equal(url.pathname, '/auth/v1/authorize');
   assert.equal(url.searchParams.get('provider'), 'google');
   assert.equal(url.searchParams.get('redirect_to'), 'https://example.github.io/habits/');
   assert.equal(url.searchParams.get('scopes'), 'openid email profile');
+  assert.equal(url.searchParams.get('code_challenge_method'), 's256');
+  const verifier = storage.getItem('daily-habits-supabase-pkce-verifier');
+  const digest = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(verifier));
+  const challenge = Buffer.from(digest).toString('base64url');
+  assert.equal(url.searchParams.get('code_challenge'), challenge);
 });
 
-test('Google OAuth rejects an invalid or external app callback', () => {
+test('Google OAuth rejects an invalid or external app callback', async () => {
   const invalid = new SupabaseClient({ url:'https://habits.supabase.co', anonKey:`sb_publishable_${'x'.repeat(32)}`, storage:memoryStorage(), redirectUrl:'javascript:alert(1)' });
-  assert.throws(() => invalid.googleOAuthUrl(), /return URL is invalid/);
+  await assert.rejects(invalid.googleOAuthUrl(), /return URL is invalid/);
   const external = new SupabaseClient({ url:'https://habits.supabase.co', anonKey:`sb_publishable_${'x'.repeat(32)}`, storage:memoryStorage(), redirectUrl:'https://attacker.example/callback' });
   const priorLocation = globalThis.location;
   globalThis.location = { origin:'https://example.github.io' };
-  try { assert.throws(() => external.googleOAuthUrl(), /must stay on this app/); }
+  try { await assert.rejects(external.googleOAuthUrl(), /must stay on this app/); }
   finally { if (priorLocation === undefined) delete globalThis.location; else globalThis.location = priorLocation; }
+});
+
+test('Google OAuth callback exchanges its one-time code with the stored PKCE verifier', async () => {
+  const storage=memoryStorage(),calls=[];
+  const client=new SupabaseClient({
+    url:'https://habits.supabase.co',anonKey:`sb_publishable_${'x'.repeat(32)}`,storage,pkceStorage:storage,
+    fetchImpl:async (url,options)=>{calls.push({url,options});return jsonResponse({access_token:'oauth-access',refresh_token:'oauth-refresh',expires_in:3600,user:{id:'oauth-user',email:'person@example.com',user_metadata:{name:'Daily User'}}})},
+  });
+  storage.setItem('daily-habits-supabase-pkce-verifier','verifier-from-this-tab');
+  let cleaned='';
+  const result=await client.exchangeOAuthCodeFromUrl({search:'?code=one-time-code&state=oauth-state&keep=yes',pathname:'/habits/',replaceState:(_state,_title,url)=>{cleaned=url}});
+  assert.equal(result,'oauth');
+  assert.match(calls[0].url,/\/auth\/v1\/token\?grant_type=pkce$/);
+  assert.deepEqual(JSON.parse(calls[0].options.body),{auth_code:'one-time-code',code_verifier:'verifier-from-this-tab'});
+  assert.equal(client.session.access_token,'oauth-access');
+  assert.equal(storage.getItem('daily-habits-supabase-pkce-verifier'),null);
+  assert.equal(cleaned,'/habits/?keep=yes');
+});
+
+test('Google OAuth callback refuses codes without the originating tab verifier', async () => {
+  const storage=memoryStorage();
+  const client=new SupabaseClient({url:'https://habits.supabase.co',anonKey:`sb_publishable_${'x'.repeat(32)}`,storage,pkceStorage:storage,fetchImpl:async()=>{throw new Error('Must not send an unbound code.')}});
+  await assert.rejects(client.exchangeOAuthCodeFromUrl({search:'?code=unbound-code'}),/another browser session/);
+  assert.equal(client.session,null);
 });
 
 test('confirmation resend and recovery use the app redirect and email-only request body', async () => {
@@ -175,8 +205,6 @@ test('email confirmation and recovery callbacks persist sessions and clean token
   assert.equal(cleanedUrl, '/habits/');
   assert.equal(callback('recovery'), 'recovery');
   assert.equal(client.session.access_token, 'access-recovery');
-  assert.equal(callback('oauth'), 'oauth');
-  assert.equal(client.session.access_token, 'access-oauth');
   assert.equal(client.acceptRecoveryFromUrl({ hash:'#type=signup' }), false);
 });
 

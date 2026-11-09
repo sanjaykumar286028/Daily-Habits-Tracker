@@ -29,6 +29,13 @@ function appRedirectUrl() {
   return `${location.origin}${location.pathname}`;
 }
 
+function base64UrlEncode(bytes) {
+  let binary = '';
+  for (const byte of bytes) binary += String.fromCharCode(byte);
+  const encoded = typeof btoa === 'function' ? btoa(binary) : Buffer.from(bytes).toString('base64');
+  return encoded.replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/g, '');
+}
+
 export function validateSupabaseConfig(url, anonKey) {
   if (typeof url !== 'string' || typeof anonKey !== 'string' || !url || !anonKey) return false;
   try {
@@ -52,12 +59,13 @@ export function validateSupabaseConfig(url, anonKey) {
 }
 
 export class SupabaseClient {
-  constructor({ url, anonKey, fetchImpl = fetch, storage = localStorage, redirectUrl = appRedirectUrl() }) {
+  constructor({ url, anonKey, fetchImpl = fetch, storage = localStorage, pkceStorage = typeof sessionStorage === 'undefined' ? storage : sessionStorage, redirectUrl = appRedirectUrl() }) {
     if (!validateSupabaseConfig(url, anonKey)) throw new Error('Supabase project URL and publishable key are not configured safely.');
     this.url = url.replace(/\/$/, '');
     this.anonKey = anonKey;
     this.fetchImpl = fetchImpl;
     this.storage = storage;
+    this.pkceStorage = pkceStorage;
     this.redirectUrl = redirectUrl;
     this.authListeners = new Set();
     this.session = this.readSession();
@@ -177,7 +185,7 @@ export class SupabaseClient {
     return result.user;
   }
 
-  googleOAuthUrl() {
+  async googleOAuthUrl() {
     if (!this.redirectUrl) throw new Error('This app could not determine a secure sign-in return URL.');
     let redirect;
     try { redirect = new URL(this.redirectUrl); } catch { throw new Error('The Google sign-in return URL is invalid.'); }
@@ -187,11 +195,47 @@ export class SupabaseClient {
     if (typeof location !== 'undefined' && location.origin && redirect.origin !== location.origin) {
       throw new Error('The Google sign-in return URL must stay on this app.');
     }
+    if (!globalThis.crypto?.subtle || !globalThis.crypto?.getRandomValues) throw new Error('Secure Google sign-in is unavailable in this browser.');
+    const random = new Uint8Array(32);
+    globalThis.crypto.getRandomValues(random);
+    const verifier = base64UrlEncode(random);
+    const challenge = base64UrlEncode(new Uint8Array(await globalThis.crypto.subtle.digest('SHA-256', new TextEncoder().encode(verifier))));
+    try { this.pkceStorage.setItem('daily-habits-supabase-pkce-verifier', verifier); }
+    catch { throw new Error('This browser cannot securely start Google sign-in. Enable session storage and try again.'); }
     const authorization = new URL(`${this.url}/auth/v1/authorize`);
     authorization.searchParams.set('provider', 'google');
     authorization.searchParams.set('redirect_to', redirect.href);
     authorization.searchParams.set('scopes', 'openid email profile');
+    authorization.searchParams.set('code_challenge', challenge);
+    authorization.searchParams.set('code_challenge_method', 's256');
     return authorization.toString();
+  }
+
+  async exchangeOAuthCodeFromUrl(urlState = {}) {
+    const currentLocation = typeof location === 'undefined' ? {} : location;
+    const search = urlState.search ?? currentLocation.search ?? '';
+    const params = new URLSearchParams(search);
+    const code = params.get('code');
+    if (!code) return false;
+    let verifier;
+    try {
+      verifier = this.pkceStorage.getItem('daily-habits-supabase-pkce-verifier');
+      this.pkceStorage.removeItem('daily-habits-supabase-pkce-verifier');
+    } catch {}
+    if (!verifier) throw new Error('This Google sign-in was started in another browser session. Please try again here.');
+    const session = await this.rawRequest('/auth/v1/token?grant_type=pkce', {
+      method:'POST', body:{ auth_code:code, code_verifier:verifier }, token:this.anonKey,
+    });
+    this.saveSession(session, 'SIGNED_IN');
+    params.delete('code');
+    params.delete('state');
+    const pathname = urlState.pathname ?? currentLocation.pathname ?? '/';
+    const hash = urlState.hash ?? currentLocation.hash ?? '';
+    const replaceState = urlState.replaceState || (typeof history !== 'undefined' ? history.replaceState.bind(history) : () => {});
+    const title = typeof document === 'undefined' ? '' : document.title;
+    const remainingSearch = params.toString();
+    replaceState(null, title, `${pathname}${remainingSearch ? `?${remainingSearch}` : ''}${hash}`);
+    return 'oauth';
   }
 
   async currentUser() {
@@ -247,8 +291,8 @@ export class SupabaseClient {
     const search = urlState.search ?? currentLocation.search ?? '';
     const params = new URLSearchParams(currentHash.replace(/^#/, ''));
     const type = params.get('type');
-    if (!params.get('access_token') || !params.get('refresh_token')) return false;
-    const callbackType = ['recovery', 'signup', 'invite', 'email'].includes(type) ? type : 'oauth';
+    if (!['recovery', 'signup', 'invite', 'email'].includes(type) || !params.get('access_token') || !params.get('refresh_token')) return false;
+    const callbackType = type;
     this.saveSession({
       access_token:params.get('access_token'), refresh_token:params.get('refresh_token'),
       expires_in:Number(params.get('expires_in') || 3600), token_type:params.get('token_type') || 'bearer',
