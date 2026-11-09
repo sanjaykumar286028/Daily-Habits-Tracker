@@ -3,18 +3,18 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <meta name="theme-color" content="#f6f7f5" />
+  <meta name="theme-color" content="#f4f6f3" />
   <meta name="description" content="A calm, private space to build daily habits and make meaningful progress." />
   <link rel="manifest" href="./manifest.json" />
-  <link rel="icon" href="./icons/icon.svg" type="image/svg+xml" />
+  <link rel="icon" href="./icons/logo.svg" type="image/svg+xml" />
   <link rel="stylesheet" href="./styles.css" />
   <title>Daily Habits — Small actions, meaningful growth</title>
 </head>
 <body>
   <div class="app-shell">
-    <aside class="sidebar" aria-label="Main navigation">
-      <a class="brand" href="#dashboard" aria-label="Daily Habits home"><span class="brand-mark">d</span><span>daily<span class="brand-light">habits</span></span></a>
-      <div class="workspace-label">WORKSPACE</div>
+    <aside id="sidebar" class="sidebar" aria-label="Main navigation" aria-hidden="true" inert>
+      <div class="drawer-heading"><a class="brand" href="#dashboard" data-page="dashboard" aria-label="Daily Habits home"><img class="brand-mark" src="./icons/logo.svg" alt="" /><span>Daily<span class="brand-light"> Habits</span></span></a><button id="drawer-close" class="icon-button drawer-close" type="button" aria-label="Close navigation">×</button></div>
+      <div class="workspace-label">YOUR SPACE</div>
       <nav id="side-nav" class="nav-list"></nav>
       <div class="sidebar-bottom">
         <div class="sync-indicator"><span class="status-dot"></span><span id="sync-label">Saved on this device</span></div>
@@ -22,11 +22,11 @@
       </div>
     </aside>
     <main class="main-area">
-      <header class="topbar"><div class="mobile-brand"><span class="brand-mark">d</span> dailyhabits</div><div class="breadcrumb"><span>My workspace</span><span class="crumb-sep">/</span><strong id="page-label">Overview</strong></div><div class="top-actions"><button id="theme-toggle" class="icon-button" aria-label="Toggle color theme" title="Toggle theme">◐</button><button class="icon-button settings-shortcut" data-page="settings" aria-label="Open settings" title="Open settings">⚙</button></div></header>
+      <header class="topbar"><button id="drawer-open" class="icon-button menu-button" type="button" aria-label="Open navigation" aria-controls="sidebar" aria-expanded="false"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 6h16M4 12h16M4 18h16"/></svg></button><a class="mobile-brand" href="#dashboard" aria-label="Daily Habits dashboard"><img class="brand-mark" src="./icons/logo.svg" alt=""/><span>Daily<span class="brand-light"> Habits</span></span></a><div class="breadcrumb"><span>My workspace</span><span class="crumb-sep">/</span><strong id="page-label">Dashboard</strong></div><div class="top-actions"><button id="theme-toggle" class="icon-button" aria-label="Toggle color theme" title="Toggle theme">◐</button></div></header>
       <div id="view" class="page-content" tabindex="-1"></div>
-      <nav id="bottom-nav" class="bottom-nav" aria-label="Mobile navigation"></nav>
     </main>
   </div>
+  <button id="drawer-scrim" class="drawer-scrim" type="button" aria-label="Close navigation" tabindex="-1"></button>
   <dialog id="modal" class="modal"><form method="dialog" id="modal-form"><div class="modal-head"><div><div class="eyebrow" id="modal-eyebrow">NEW</div><h2 id="modal-title">Add item</h2></div><button class="icon-button" value="cancel" formnovalidate aria-label="Close">×</button></div><div id="modal-body"></div><div class="modal-actions"><button class="button button-quiet" value="cancel" formnovalidate>Cancel</button><button id="modal-submit" class="button button-primary" value="default">Save</button></div></form></dialog>
   <div id="update-banner" class="update-banner" hidden><span>A Daily Habits update is ready.</span><button class="button button-primary button-sm" id="update-now">Update now</button></div>
   <div id="storage-warning" class="storage-warning" role="alert" hidden></div>
