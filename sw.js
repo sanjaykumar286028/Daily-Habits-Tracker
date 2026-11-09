@@ -6,7 +6,7 @@ const shellUrl = path => {
   url.searchParams.set('v', VERSION);
   return url.href;
 };
-const SHELL = ['', 'index.html', 'styles.css', 'src/app.js', 'src/domain.js', 'src/public-config.js', 'src/supabase-client.js', 'src/sync.js', 'manifest.json', 'icons/icon.svg', 'icons/icon-192.png', 'icons/icon-512.png']
+const SHELL = ['', 'index.html', 'styles.css', 'src/app.js', 'src/domain.js', 'src/public-config.js', 'src/supabase-client.js', 'src/sync.js', 'manifest.json', 'icons/logo.svg', 'icons/icon.svg']
   .map(shellUrl);
 
 self.addEventListener('install', event => {
@@ -43,4 +43,3 @@ self.addEventListener('fetch', event => {
     return response;
   })));
 });
-
