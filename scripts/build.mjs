@@ -1,4 +1,4 @@
-import { cp, mkdir, readFile, readdir, rm, writeFile } from 'node:fs/promises';
+import { cp, mkdir, readFile, readdir, writeFile } from 'node:fs/promises';
 import { validateSupabaseConfig } from '../src/supabase-client.js';
 await mkdir('dist', { recursive: true });
 for (const path of ['index.html', 'styles.css', 'manifest.json', 'sw.js', 'src', 'icons', '.nojekyll']) {
@@ -16,13 +16,14 @@ await writeFile(serviceWorkerPath, serviceWorker.replace(/const CACHE_NAME = 'da
 const capacitorCorePath = 'node_modules/@capacitor/core/dist/index.js';
 const localNotificationsPath = 'node_modules/@capacitor/local-notifications/dist/esm';
 try {
+  const localNotificationsPackage = JSON.parse(await readFile('node_modules/@capacitor/local-notifications/package.json', 'utf8'));
+  const localNotificationsOutput = `dist/vendor/local-notifications-${localNotificationsPackage.version}`;
   await mkdir('dist/vendor', { recursive:true });
   await writeFile('dist/vendor/capacitor-core.js', await readFile(capacitorCorePath));
-  await rm('dist/vendor/local-notifications', { recursive:true, force:true });
-  await mkdir('dist/vendor/local-notifications', { recursive:true });
+  await mkdir(localNotificationsOutput, { recursive:true });
   for (const name of await readdir(localNotificationsPath)) {
     if (!name.endsWith('.js')) continue;
-    const file = `dist/vendor/local-notifications/${name}`;
+    const file = `${localNotificationsOutput}/${name}`;
     const source = await readFile(`${localNotificationsPath}/${name}`, 'utf8');
     const browserImports = source.replace(/((?:from\s*|import\s*\(\s*)['"])(\.{1,2}\/[^'"]+?)(['"])/g, (match, before, specifier, after) =>
       `${before}${/\.[a-z0-9]+$/i.test(specifier) ? specifier : `${specifier}.js`}${after}`).replace(/^\/\/# sourceMappingURL=.*$/gm, '');
@@ -30,7 +31,7 @@ try {
   }
   const htmlPath = 'dist/index.html';
   const html = await readFile(htmlPath, 'utf8');
-  const importMap = '<script type="importmap">{"imports":{"@capacitor/core":"./vendor/capacitor-core.js","@capacitor/local-notifications":"./vendor/local-notifications/index.js"}}</script>\n  ';
+  const importMap = `<script type="importmap">{"imports":{"@capacitor/core":"./vendor/capacitor-core.js","@capacitor/local-notifications":"./vendor/local-notifications-${localNotificationsPackage.version}/index.js"}}</script>\n  `;
   await writeFile(htmlPath, html.replace('<script type="module" src="./src/app.js"></script>', `${importMap}<script type="module" src="./src/app.js"></script>`));
 } catch (error) {
   if (error.code !== 'ENOENT') throw error;
@@ -63,4 +64,3 @@ if (basePath !== './') {
   await writeFile(manifestPath, `${JSON.stringify(manifest, null, 2)}\n`);
 }
 console.log('Static site built in dist/');
-

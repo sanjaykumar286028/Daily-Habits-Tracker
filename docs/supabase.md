@@ -26,6 +26,12 @@ For local builds, set both environment variables before `npm run build`. Leave b
 
 Settings supports account creation, sign-in, session restoration/refresh, sign-out, password recovery, display-name updates, and manual sync. Signing in merges local guest records into the account and merges existing cloud records. Conflicts are resolved per record by last-updated timestamp; the database trigger rejects a stale concurrent upsert. Later local changes stay in IndexedDB and the recovery copy, then retry when the device reconnects. Deletes create sync tombstones. The app does not send records before sign-in.
 
+The Supabase Dashboard login is an administrator account, separate from a Daily Habits application user. An app user must exist in this project's **Authentication → Users** list. To register from the app, enter a valid email and an 8+ character password, choose **Create account**, confirm the password, and open the confirmation email. Email confirmation redirects to the deployed app and establishes a session; if no session is returned, the UI stays signed out and asks the user to verify before signing in. A pending confirmation can be resent from the app. Reset-password links return to the app, are accepted from the URL fragment, and require the user to enter and confirm a new password.
+
+If sign-in returns `Invalid login credentials`, the Auth endpoint was reached, but the response alone cannot distinguish a missing app user from a wrong password. Verify whether the exact email is listed under Authentication → Users in this project and whether it is confirmed. Do not infer user existence from Dashboard access, and do not disable confirmation or RLS as a workaround. Password-reset and resend endpoints intentionally avoid revealing whether an email is registered.
+
+For GitHub OAuth, configure a GitHub OAuth app and its client ID/secret in Supabase's GitHub provider settings, then use Supabase's project callback URI and allow the deployed app URL. This repository does not enable a GitHub OAuth button until those owner-managed provider credentials and callback settings exist; never put the OAuth client secret in this public repository or browser build.
+
 Sign-out leaves local records intact. **Delete local data** signs out and deletes device data; it does not delete the account's cloud copy. Users can sign in again to retrieve cloud records.
 
 ## Verify before production use
