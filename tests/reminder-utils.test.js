@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { buildUpcomingReminders, isQuietTime, moveReminderOutOfQuietHours, reminderId } from '../src/reminder-utils.js';
+import { buildDueHabitReminders, buildUpcomingReminders, isQuietTime, moveReminderOutOfQuietHours, reminderId } from '../src/reminder-utils.js';
 
 const habit = overrides => ({ id:'habit-1', name:'Read', startDate:'2026-11-01', frequency:'daily', time:'09:30', ...overrides });
 
