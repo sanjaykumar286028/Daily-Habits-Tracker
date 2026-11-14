@@ -20,6 +20,19 @@ test('sync creates owner-scoped records and includes private journal only in an 
   assert.equal(rows.find(row => row.collection === 'tasks').record.title, 'Submit assignment');
 });
 
+test('task edits merge by timestamp and task tombstones prevent deleted tasks from returning', () => {
+  const state = baseState();
+  state.tasks.push({ id:'task-1', title:'New local title', endAt:'2026-11-06T12:00:00.000Z', status:'pending', updatedAt:'2026-11-05T11:30:00.000Z' });
+  const remote = [{ user_id:'owner-1', collection:'tasks', record_id:'task-1', record:{ id:'task-1', title:'Old cloud title' }, updated_at:'2026-11-05T10:00:00.000Z', deleted_at:null }];
+  const merged = mergeSyncRecords(state, remote, 'owner-1', now);
+  assert.equal(merged.state.tasks[0].title, 'New local title');
+
+  const deleted = { ...merged.state, tasks:[], syncTombstones:[{ collection:'tasks', recordId:'task-1', updatedAt:'2026-11-05T11:45:00.000Z' }] };
+  const afterDelete = mergeSyncRecords(deleted, remote, 'owner-1', now);
+  assert.deepEqual(afterDelete.state.tasks, []);
+  assert.equal(afterDelete.rows.find(row => row.collection==='tasks' && row.record_id==='task-1')?.deleted_at, '2026-11-05T11:45:00.000Z');
+});
+
 test('sync uses the newest per-record timestamp and ignores rows for other owners', () => {
   const local = baseState();
   const remote = [
