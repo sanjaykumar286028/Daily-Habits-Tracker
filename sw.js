@@ -1,4 +1,4 @@
-const CACHE_NAME = 'daily-habits-shell-v5';
+const CACHE_NAME = 'daily-habits-shell-v6';
 const BASE = new URL(self.registration.scope);
 const VERSION = CACHE_NAME.replace('daily-habits-shell-', '');
 const shellUrl = path => {
@@ -6,7 +6,7 @@ const shellUrl = path => {
   url.searchParams.set('v', VERSION);
   return url.href;
 };
-const SHELL = ['', 'index.html', 'styles.css', 'src/app.js', 'src/domain.js', 'src/focus-timer.js', 'src/reminder-utils.js', 'src/public-config.js', 'src/supabase-client.js', 'src/sync.js', 'manifest.json', 'icons/logo.svg', 'icons/icon.svg']
+const SHELL = ['', 'index.html', 'styles.css', 'src/app.js', 'src/domain.js', 'src/focus-timer.js', 'src/reminder-utils.js', 'src/task-utils.js', 'src/task-view.js', 'src/public-config.js', 'src/supabase-client.js', 'src/sync.js', 'manifest.json', 'icons/logo.svg', 'icons/icon.svg']
   .map(shellUrl);
 
 self.addEventListener('install', event => {
@@ -43,3 +43,4 @@ self.addEventListener('fetch', event => {
     return response;
   })));
 });
+

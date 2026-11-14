@@ -61,7 +61,7 @@ export function goalProgress(goal, habits, logs, today = new Date().toLocaleDate
 
 export function validateBackup(data) {
   if (!data || data.schemaVersion !== 1 || !Array.isArray(data.habits) || !Array.isArray(data.logs)) return false;
-  if (!['goals', 'journal', 'focus'].every(key => data[key] === undefined || Array.isArray(data[key]))) return false;
+  if (!['tasks', 'goals', 'journal', 'focus'].every(key => data[key] === undefined || Array.isArray(data[key]))) return false;
   const validId = value => typeof value === 'string' && /^[A-Za-z0-9][A-Za-z0-9_-]{0,127}$/.test(value);
   const validDate = value => typeof value === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(value)
     && Number.isFinite(Date.parse(`${value}T00:00:00Z`))
@@ -107,6 +107,15 @@ export function validateBackup(data) {
     !validId(entry.id) || !validDate(entry.date) || entry.body.length > 5000 || (entry.title !== undefined && (typeof entry.title !== 'string' || entry.title.length > 100))))) return false;
   if (data.focus && (!validRows(data.focus, ['id', 'date']) || !uniqueIds(data.focus) || data.focus.some(session =>
     !validId(session.id) || !validDate(session.date) || (session.duration !== undefined && (!Number.isFinite(Number(session.duration)) || Number(session.duration) <= 0))))) return false;
+  if (data.tasks && (!validRows(data.tasks, ['id', 'title', 'endAt']) || data.tasks.length > 10000 || !uniqueIds(data.tasks) || data.tasks.some(task =>
+    !validId(task.id) || task.title.trim().length < 1 || task.title.length > 120
+    || (task.description !== undefined && (typeof task.description !== 'string' || task.description.length > 1000))
+    || !Number.isFinite(Date.parse(task.endAt))
+    || (task.startAt !== undefined && task.startAt !== '' && (!Number.isFinite(Date.parse(task.startAt)) || Date.parse(task.startAt) > Date.parse(task.endAt)))
+    || !['pending', 'in_progress', 'completed', 'overdue'].includes(task.status || 'pending')
+    || (task.reminderLeadMinutes !== undefined && (!Array.isArray(task.reminderLeadMinutes) || task.reminderLeadMinutes.some(value => ![5,10].includes(Number(value)))))
+    || (task.completedAt !== undefined && task.completedAt !== null && !Number.isFinite(Date.parse(task.completedAt)))
+    || (task.snoozeUntil !== undefined && task.snoozeUntil !== null && !Number.isFinite(Date.parse(task.snoozeUntil)))))) return false;
   if (data.achievements !== undefined && (!Array.isArray(data.achievements) || data.achievements.length > 1000
     || data.achievements.some(item => !item || !validId(item.id)))) return false;
   if (data.reminderSent !== undefined && (!Array.isArray(data.reminderSent) || data.reminderSent.length > 10000
@@ -115,6 +124,8 @@ export function validateBackup(data) {
     || (data.settings.theme !== undefined && !['light', 'dark'].includes(data.settings.theme))
     || (data.settings.weekStart !== undefined && !['monday', 'sunday'].includes(data.settings.weekStart))
     || (data.settings.reminders !== undefined && typeof data.settings.reminders !== 'boolean')
+    || (data.settings.taskReminders !== undefined && typeof data.settings.taskReminders !== 'boolean')
+    || (data.settings.deadlineAlerts !== undefined && typeof data.settings.deadlineAlerts !== 'boolean')
     || (data.settings.notificationSound !== undefined && typeof data.settings.notificationSound !== 'boolean')
     || (data.settings.notificationVibration !== undefined && typeof data.settings.notificationVibration !== 'boolean')
     || (data.settings.quietHoursEnabled !== undefined && typeof data.settings.quietHoursEnabled !== 'boolean')
@@ -148,3 +159,4 @@ export function shiftMonth(date, offset) {
   shifted.setMonth(shifted.getMonth() + Number(offset));
   return shifted;
 }
+

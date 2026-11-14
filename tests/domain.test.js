@@ -73,8 +73,9 @@ test('backup validation bounds expensive streak history from very old habit date
 });
 
 test('backup validation checks reminder settings', () => {
-  const backup = { schemaVersion:1, habits:[], logs:[], settings:{ reminders:true, notificationSound:false, quietHoursEnabled:true, quietHoursStart:'22:00', quietHoursEnd:'08:00', snoozeMinutes:15 } };
+  const backup = { schemaVersion:1, habits:[], logs:[], settings:{ reminders:true, taskReminders:true, deadlineAlerts:true, notificationSound:false, quietHoursEnabled:true, quietHoursStart:'22:00', quietHoursEnd:'08:00', snoozeMinutes:15 } };
   assert.equal(validateBackup(backup), true);
+  assert.equal(validateBackup({ ...backup, settings:{ ...backup.settings, deadlineAlerts:'yes' } }), false);
   assert.equal(validateBackup({ ...backup, settings:{ ...backup.settings, quietHoursStart:'27:00' } }), false);
   assert.equal(validateBackup({ ...backup, settings:{ ...backup.settings, snoozeMinutes:7 } }), false);
 });
@@ -136,3 +137,4 @@ test('calendar month navigation clamps to month start across short months', () =
   assert.equal(localDate(shiftMonth(new Date(2026, 0, 31), 1)), '2026-02-01');
   assert.equal(shiftMonth(new Date(2026, 11, 20), 1).getMonth(), 0);
 });
+

@@ -1,4 +1,4 @@
-const COLLECTIONS = ['habits', 'logs', 'goals', 'journal', 'focus', 'achievements'];
+const COLLECTIONS = ['habits', 'logs', 'tasks', 'goals', 'journal', 'focus', 'achievements'];
 
 function stamp(record, fallback) {
   const time = Date.parse(record?.updatedAt || '');
@@ -62,3 +62,4 @@ export async function syncState(client, state, userId, now = Date.now()) {
   await client.upsertSyncRecords(result.rows);
   return result.state;
 }
+

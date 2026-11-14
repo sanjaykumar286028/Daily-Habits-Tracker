@@ -6,15 +6,18 @@ const now = Date.parse('2026-11-05T12:00:00.000Z');
 const baseState = () => ({
   schemaVersion:1, savedAt:now,
   habits:[{ id:'habit-1', name:'Local', updatedAt:'2026-11-05T10:00:00.000Z' }],
+  tasks:[],
   logs:[], goals:[], journal:[], focus:[], achievements:[], settings:{ theme:'light', updatedAt:'2026-11-05T10:00:00.000Z' }, syncTombstones:[],
 });
 
 test('sync creates owner-scoped records and includes private journal only in an authenticated sync payload', () => {
   const state = baseState();
   state.journal.push({ id:'journal-1', date:'2026-11-05', body:'private reflection', updatedAt:'2026-11-05T11:00:00.000Z' });
+  state.tasks.push({ id:'task-1', title:'Submit assignment', endAt:'2026-11-05T12:00:00.000Z', status:'pending', updatedAt:'2026-11-05T11:00:00.000Z' });
   const rows = makeSyncRows(state, 'owner-1');
   assert.equal(rows.every(row => row.user_id === 'owner-1'), true);
   assert.equal(rows.find(row => row.collection === 'journal').record.body, 'private reflection');
+  assert.equal(rows.find(row => row.collection === 'tasks').record.title, 'Submit assignment');
 });
 
 test('sync uses the newest per-record timestamp and ignores rows for other owners', () => {
@@ -54,3 +57,4 @@ test('sync uploads merged guest records and stores profile preferences through t
   assert.deepEqual(calls[0], ['read','owner-1']);
   assert.equal(calls[1][1].some(row => row.collection === 'preferences'), true);
 });
+

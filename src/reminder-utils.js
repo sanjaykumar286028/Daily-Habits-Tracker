@@ -62,7 +62,6 @@ export function buildDueHabitReminders({ habits, logs, settings, now = new Date(
   return reminders;
 }
 
-
 export function buildUpcomingReminders({ habits, logs, settings, now = new Date(), days = 14, limit = 1000 }) {
   if (!settings?.reminders) return [];
   const logsByHabitDate = new Map((logs || []).map(log => [`${log.habitId}:${log.date}`, log]));
@@ -94,3 +93,4 @@ export function buildUpcomingReminders({ habits, logs, settings, now = new Date(
   }
   return reminders;
 }
+
