@@ -57,3 +57,16 @@ test('reminder identifiers remain positive 32-bit values and distinguish dates',
   assert.ok(first > 0 && first <= 2_000_000_000);
   assert.notEqual(first, reminderId('habit-1', '2026-11-08'));
 });
+
+test('due habit reminders survive a missed polling minute but remain deduplicated', () => {
+  const now = new Date(2026, 10, 9, 17, 0, 12);
+  const habits = [{ id:'read', name:'Read', time:'17:00', type:'boolean', frequency:'daily' }];
+  const settings = { reminders:true, reminderSent:[] };
+  const reminders = buildDueHabitReminders({ habits, logs:[], settings, now });
+  assert.equal(reminders.length, 1);
+  assert.equal(reminders[0].body, 'Read is scheduled now. Your progress is still pending.');
+  assert.equal(buildDueHabitReminders({ habits, logs:[], settings:{...settings, reminderSent:['read:2026-11-09']}, now }).length, 0);
+  assert.equal(buildDueHabitReminders({ habits, logs:[{habitId:'read',date:'2026-11-09',status:'done'}], settings, now }).length, 0);
+  assert.equal(buildDueHabitReminders({ habits, logs:[], settings, now:new Date(2026,10,9,17,31) }).length, 0);
+});
+

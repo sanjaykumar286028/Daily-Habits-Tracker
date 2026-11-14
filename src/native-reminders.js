@@ -4,6 +4,7 @@ import { buildUpcomingReminders, moveReminderOutOfQuietHours, reminderId } from 
 
 const actionTypeId = 'habit-reminder-actions';
 const managedExtra = extra => extra?.kind === 'daily-habits-reminder';
+const managedFocusExtra = extra => extra?.kind === 'daily-habits-focus';
 let configured = false;
 
 function channelId(sound, vibration) {
@@ -134,4 +135,30 @@ export async function testAndroidReminderSound(settings = {}) {
     isExactNotification:false,
   }] });
   return true;
+}
+
+export async function cancelAndroidFocusCompletion() {
+  if (!Capacitor.isNativePlatform() || Capacitor.getPlatform() !== 'android') return false;
+  const pending = await LocalNotifications.getPending();
+  const managed = pending.notifications.filter(notification => managedFocusExtra(notification.extra));
+  if (managed.length) await LocalNotifications.cancel({ notifications:managed.map(({ id }) => ({ id })) });
+  return true;
+}
+
+export async function scheduleAndroidFocusCompletion(session, settings = {}) {
+  if (!Capacitor.isNativePlatform() || Capacitor.getPlatform() !== 'android') return { supported:false, scheduled:false };
+  await cancelAndroidFocusCompletion();
+  if (!settings.focusNotifications || !session || session.paused || !Number.isFinite(Number(session.deadlineAt)) || Number(session.deadlineAt) <= Date.now()) return { supported:true, scheduled:false };
+  const permission = await LocalNotifications.checkPermissions();
+  if (permission.display !== 'granted') return { supported:true, scheduled:false, permission:permission.display };
+  await ensureChannels();
+  await LocalNotifications.schedule({ notifications:[{
+    id:reminderId(session.id, 'focus-completion', 'focus'),
+    title:'Focus Session Completed!',
+    body:'Your focus session has ended. Take a break or start another session.',
+    schedule:{ at:new Date(Number(session.deadlineAt)), allowWhileIdle:true },
+    channelId:channelId(settings.notificationSound !== false, settings.notificationVibration !== false),
+    extra:{ kind:'daily-habits-focus', sessionId:session.id },
+  }] });
+  return { supported:true, scheduled:true };
 }

@@ -117,3 +117,21 @@ body.dark .menu-button{background:#1d2821}
 body:has(.update-banner:not([hidden])) .page-content{padding-top:108px}
 .update-banner{left:50%;right:auto;width:min(540px,calc(100vw - 32px));max-width:calc(100vw - 24px);transform:translateX(-50%)}
 @media(max-width:760px){body:has(.update-banner:not([hidden])) .page-content{padding-top:100px}.update-banner{top:70px;left:12px;right:12px;width:auto;max-width:none;justify-content:space-between;flex-wrap:wrap}}
+
+/* Focus timer: accessible progress ring and configurable duration controls. */
+.timer-ring{border:0;background:transparent;overflow:visible}
+.timer-ring:before{display:none}
+.focus-progress-ring{position:absolute;inset:0;width:100%;height:100%;transform:rotate(-90deg);overflow:visible}
+.focus-ring-track,.focus-ring-value{fill:none;stroke-width:7}
+.focus-ring-track{stroke:var(--soft-green)}
+.focus-ring-value{stroke:var(--green);stroke-linecap:round;transition:stroke-dashoffset .25s linear}
+.focus-duration-form{display:grid;justify-items:center;gap:10px;margin:26px auto 0;max-width:360px}
+.focus-duration-form>label{font-size:12px;font-weight:700}
+.focus-duration-fields{display:flex;gap:12px;width:100%}
+.focus-duration-fields>div{display:flex;align-items:center;gap:7px;flex:1}
+.focus-duration-fields input{width:100%;min-width:0;border:1px solid var(--line);border-radius:8px;background:var(--surface);color:var(--text);padding:10px;text-align:center}
+.focus-duration-fields span{font-size:11px;color:var(--muted)}
+.focus-completion{margin:20px auto;padding:18px;border:1px solid var(--line);border-radius:10px;background:var(--surface-2)}
+.focus-completion h2{font:700 17px Manrope;margin:0 0 8px}
+.focus-completion p{line-height:1.5}
+.focus-completion .button-row{justify-content:center}
